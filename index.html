@@ -1,0 +1,1684 @@
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Centrale Marée Import & Local</title>
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+    * { box-sizing: border-box; }
+    :root { --navy:#0a2540; --blue:#1e88e5; --blue-dark:#1565c0; --bg:#f6f8fb; --text:#1e293b; --muted:#64748b; --border:#e2e8f0; --red:#ef4444; }
+    body { margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, "Helvetica Neue", Arial, sans-serif; background:var(--bg); color:var(--text); -webkit-font-smoothing:antialiased; }
+    header { background:var(--navy); color:white; position:sticky; top:0; z-index:50; box-shadow:0 2px 10px rgba(0,0,0,.15); }
+    .header-inner { max-width:1200px; margin:0 auto; padding:14px 20px; display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap; }
+    .logo { font-weight:800; font-size:1.25rem; letter-spacing:.2px; display:flex; align-items:center; gap:10px; }
+    .logo span { font-size:1.5rem; }
+    nav { display:flex; gap:8px; flex-wrap:wrap; }
+    nav button { background:transparent; color:white; border:1.5px solid rgba(255,255,255,.25); padding:9px 16px; border-radius:10px; cursor:pointer; font-weight:600; font-size:.95rem; transition:.2s; white-space:nowrap; }
+    nav button:hover, nav button.active { background:var(--blue); border-color:var(--blue); transform:translateY(-1px); }
+    .cart-badge { background:#ff3b30; color:white; font-size:.75rem; padding:2px 7px; border-radius:999px; margin-left:6px; min-width:20px; display:inline-block; text-align:center; }
+
+    main { max-width:1200px; margin:0 auto; padding:28px 20px 60px; }
+    .page { display:none; animation:fade .25s ease; }
+    .page.active { display:block; }
+    @keyframes fade { from{opacity:0; transform:translateY(6px)} to{opacity:1; transform:none} }
+
+    .hero { background:linear-gradient(135deg, #0a2540 0%, #133b63 50%, #1e4d7a 100%); color:white; padding:70px 30px; border-radius:20px; text-align:center; position:relative; overflow:hidden; box-shadow:0 10px 30px rgba(10,37,64,.25); }
+    .hero::before { content:""; position:absolute; inset:0; background: radial-gradient(600px circle at 80% -10%, rgba(30,136,229,.35), transparent 40%); }
+    .hero h1 { font-size:2.6rem; margin:0 0 14px; font-weight:800; letter-spacing:-.5px; position:relative; }
+    .hero p { margin:0; font-size:1.15rem; opacity:.92; position:relative; }
+    .features { display:grid; grid-template-columns:repeat(3,1fr); gap:18px; margin-top:28px; }
+    .feature { background:white; padding:26px 20px; border-radius:16px; box-shadow:0 6px 18px rgba(10,37,64,.07); text-align:center; border:1px solid var(--border); transition:.2s; }
+    .feature:hover { transform:translateY(-3px); box-shadow:0 10px 24px rgba(10,37,64,.12); }
+    .feature-icon { font-size:2rem; margin-bottom:8px; }
+    .feature h3 { margin:6px 0 4px; font-size:1.05rem; color:var(--navy); }
+    .feature p { margin:0; color:var(--muted); font-size:.92rem; }
+
+    h2.section-title { font-size:1.8rem; margin:0 0 18px; color:var(--navy); font-weight:800; }
+    .toolbar { background:white; padding:14px 18px; border-radius:12px; box-shadow:0 4px 12px rgba(0,0,0,.05); display:flex; align-items:center; gap:12px; flex-wrap:wrap; border:1px solid var(--border); }
+    .toolbar label { font-weight:600; color:var(--navy); display:flex; align-items:center; gap:10px; }
+    select, input, textarea { font:inherit; padding:10px 12px; border:1.5px solid var(--border); border-radius:10px; background:white; transition:.15s; }
+    select:focus, input:focus, textarea:focus { outline:none; border-color:var(--blue); box-shadow:0 0 0 3px rgba(30,136,229,.15); }
+
+    .grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(270px,1fr)); gap:12px; margin-top:22px; }
+    .card { background:white; border-radius:16px; padding:16px; box-shadow:0 6px 18px rgba(10,37,64,.08); border:1px solid var(--border); display:flex; flex-direction:column; gap:10px; transition:.2s; min-height:180px; overflow:hidden; }
+    .card:hover { transform:translateY(-4px); box-shadow:0 12px 28px rgba(10,37,64,.14); }
+    .card h4 { margin:0; font-size:1.18rem; color:var(--navy); }
+    .card .meta { font-size:.85rem; color:var(--muted); }
+    .price { font-size:1.15rem; font-weight:800; color:var(--blue); display:flex; align-items:baseline; gap:6px; flex-wrap:wrap; }
+    .price small { font-weight:500; color:var(--muted); font-size:.9rem; }
+    .card-footer { display:flex; gap:8px; margin-top:6px; align-items:center; flex-wrap:wrap; }
+    .qty-input { width:70px; text-align:center; font-weight:600; }
+    button.primary { background:var(--blue); color:white; border:none; padding:11px 16px; border-radius:10px; cursor:pointer; font-weight:700; flex:1; transition:.15s; box-shadow:0 4px 10px rgba(30,136,229,.25); }
+    button.primary:hover:not(:disabled) { background:var(--blue-dark); transform:translateY(-1px); }
+    button.primary:disabled { opacity:.5; cursor:not-allowed; transform:none; box-shadow:none; }
+    button.secondary { background:#eef2f7; color:var(--navy); border:none; padding:11px 16px; border-radius:10px; cursor:pointer; font-weight:600; transition:.15s; }
+    button.secondary:hover { background:#e2e8f0; }
+    button.danger { background:var(--red); color:white; border:none; padding:8px 12px; border-radius:8px; cursor:pointer; font-weight:600; }
+
+    .table-wrap { overflow-x:auto; background:white; border-radius:14px; box-shadow:0 6px 18px rgba(10,37,64,.07); border:1px solid var(--border); }
+    table { width:100%; border-collapse:collapse; min-width:560px; }
+    th, td { padding:14px 16px; text-align:left; border-bottom:1px solid var(--border); }
+    th { background:#f8fafc; font-size:.8rem; text-transform:uppercase; letter-spacing:.5px; color:var(--muted); font-weight:700; }
+    tr:last-child td { border-bottom:none; }
+    td .tier { font-size:.75rem; color:var(--muted); background:#f1f5f9; padding:2px 8px; border-radius:999px; margin-left:6px; }
+
+    .cart-summary { margin-top:20px; background:white; padding:22px; border-radius:14px; box-shadow:0 6px 18px rgba(10,37,64,.07); border:1px solid var(--border); display:grid; grid-template-columns:1fr auto; gap:18px; align-items:start; }
+    .total-box { font-size:1.3rem; }
+    .total-box strong { color:var(--navy); font-size:1.6rem; margin-left:8px; }
+    .cart-actions { display:flex; gap:10px; flex-wrap:wrap; justify-content:flex-end; }
+    .delivery label { display:flex; align-items:center; gap:10px; font-weight:600; color:var(--navy); }
+
+    .admin-form { background:white; padding:20px; border-radius:14px; box-shadow:0 6px 18px rgba(10,37,64,.07); border:1px solid var(--border); display:grid; grid-template-columns:2fr 1fr 1fr 1fr auto; gap:12px; align-items:end; margin-bottom:22px; }
+    .admin-form .field { display:flex; flex-direction:column; gap:6px; }
+    .admin-form label { font-size:.85rem; font-weight:600; color:var(--muted); }
+
+    .empty { text-align:center; padding:40px; color:var(--muted); background:white; border-radius:14px; border:1px dashed var(--border); }
+
+    .client-card { background:white; padding:20px; border-radius:14px; box-shadow:0 6px 18px rgba(10,37,64,.07); border:1px solid var(--border); margin:16px 0; }
+    .client-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+    .client-grid .field { display:flex; flex-direction:column; gap:6px; }
+    .client-grid label { font-size:.85rem; font-weight:600; color:var(--muted); }
+    .admin-card { background:white; padding:20px; border-radius:14px; box-shadow:0 6px 18px rgba(10,37,64,.07); border:1px solid var(--border); }
+    .lock-overlay { position:fixed; inset:0; background:rgba(10,37,64,.88); backdrop-filter:blur(6px); display:flex; align-items:center; justify-content:center; z-index:200; padding:20px; }
+    .lock-box { background:white; padding:28px; border-radius:16px; width:100%; max-width:360px; box-shadow:0 20px 50px rgba(0,0,0,.35); }
+    .lock-box h3 { margin:0 0 4px; color:var(--navy); font-size:1.4rem; }
+    .lock-box input { width:100%; margin-top:10px; }
+
+    .cat-btn { background:white; border:1.5px solid var(--border); padding:8px 14px; border-radius:999px; cursor:pointer; font-weight:600; font-size:.9rem; color:var(--muted); transition:.15s; }
+    .cat-btn.active, .cat-btn:hover { background:var(--blue); border-color:var(--blue); color:white; }
+    #product-form .field label { font-size:.85rem; font-weight:600; color:var(--muted); }
+    
+    /* Compact product list */
+    .product-list { background:white; border-radius:14px; border:1px solid var(--border); overflow:hidden; box-shadow:0 6px 18px rgba(10,37,64,.07); margin-top:16px; }
+    .product-row { display:flex; align-items:center; gap:10px; padding:10px 12px; border-bottom:1px solid var(--border); font-size:.92rem; }
+    .product-row:last-child { border-bottom:none; }
+    .product-row:hover { background:#f8fafc; }
+    .product-row img, .product-row .pr-icon { width:40px; height:40px; object-fit:cover; border-radius:8px; flex-shrink:0; border:1px solid var(--border); background:#f1f5f9; display:flex; align-items:center; justify-content:center; font-size:1.25rem; }
+    .product-row .pr-name { flex:1 1 180px; min-width:110px; font-weight:700; color:var(--navy); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .product-row .pr-cat { background:#eef2ff; color:#3730a3; padding:3px 9px; border-radius:999px; font-size:.70rem; font-weight:700; flex-shrink:0; white-space:nowrap; }
+    .product-row .pr-price { font-weight:800; color:var(--blue); min-width:92px; text-align:right; flex-shrink:0; }
+    .product-row .pr-itbis { color:var(--muted); font-size:.8rem; min-width:48px; text-align:center; flex-shrink:0; }
+    .product-row .pr-qty { width:66px; flex-shrink:0; }
+    .product-row .pr-qty input { width:100%; padding:7px 4px; text-align:center; font-weight:600; border:1.5px solid var(--border); border-radius:8px; font:inherit; }
+    .product-row .pr-btn { flex-shrink:0; }
+    .product-row .pr-btn button.primary { flex:0 0 auto; padding:8px 14px; border-radius:9px; font-size:.88rem; box-shadow:0 3px 8px rgba(30,136,229,.22); }
+
+    @media (max-width:1100px){ #product-form { grid-template-columns: repeat(6,1fr)!important; } #product-form .field { grid-column: span 3 !important; } }
+    @media (max-width:700px){ #product-form { grid-template-columns: 1fr!important; } #product-form .field { grid-column: span 1 !important; } }
+
+    @media (max-width:900px) {
+      .features { grid-template-columns:1fr; }
+      .admin-form { grid-template-columns:1fr 1fr; }
+      .cart-summary { grid-template-columns:1fr; }
+      .cart-actions { justify-content:flex-start; }
+    }
+    @media (max-width:600px) {
+      .header-inner { padding:12px 16px; }
+      .logo { font-size:1.1rem; width:100%; }
+      nav { width:100%; overflow-x:auto; -webkit-overflow-scrolling:touch; padding-bottom:4px; }
+      nav button { padding:8px 12px; font-size:.9rem; }
+      main { padding:20px 16px 50px; }
+      .hero { padding:50px 20px; border-radius:16px; }
+      .hero h1 { font-size:1.9rem; }
+      .hero p { font-size:1rem; }
+      .grid { grid-template-columns:1fr; gap:12px; }
+      .admin-form { grid-template-columns:1fr; }
+      table { min-width:680px; }
+      th, td { padding:12px 10px; }
+      .client-grid{ grid-template-columns:1fr; }
+    }
+    @media (max-width: 768px) {
+      .header-inner { flex-direction: column; align-items: stretch; gap: 8px; }
+      body { font-size: 14px; }
+      .grid { grid-template-columns: 1fr !important; }
+      button.primary, button.secondary, .cart-actions button, .hero button { width: 100%; }
+      .card > div:first-child { width:50px !important; height:50px !important; min-width:50px; }
+      .card { min-height: auto; gap:8px; }
+      .card h4 { font-size: 0.95rem; }
+      .price { font-size: 0.95rem !important; }
+      .feature p, .hero p { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+      nav { width: 100%; }
+      nav button { flex: 1 1 auto; }
+    }
+    @media (max-width:680px){
+      .product-row{ flex-wrap:wrap; gap:8px 10px; padding:10px; }
+      .product-row .pr-name{ flex:1 1 calc(100% - 52px); }
+      .product-row .pr-price{ min-width:auto; text-align:left; }
+      .product-row .pr-itbis{ order:3; }
+      .product-row .pr-qty{ margin-left:auto; order:4; }
+      .product-row .pr-btn{ width:100%; order:5; }
+      .product-row .pr-btn button.primary{ width:100%; }
+    }
+</style>
+</head>
+<body>
+<header>
+  <div class="header-inner">
+    <div class="logo"><img id="header-logo" style="width:28px;height:28px;object-fit:contain;border-radius:6px;display:none;vertical-align:middle;margin-right:6px"><span id="logo-emoji">🐟</span> <span id="header-company-name">Centrale Marée Import & Local</span></div>
+    <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+      <nav>
+        <button id="nav-accueil" onclick="show('accueil')" data-i18n="nav_accueil">Accueil</button>
+        <button id="nav-boutique" onclick="show('boutique')" data-i18n="nav_boutique">Boutique</button>
+        <button id="nav-panier" onclick="show('panier')"><span data-i18n="nav_panier">Panier</span> <span class="cart-badge" id="cart-count">0</span></button>
+        <button id="nav-admin" onclick="show('admin')" data-i18n="nav_admin">Admin</button>
+      </nav>
+      <button id="lang-toggle" onclick="toggleLang()" style="background:rgba(255,255,255,.2);border:1.5px solid rgba(255,255,255,.3);color:white;padding:8px 14px;border-radius:10px;cursor:pointer;font-weight:700;font-size:.9rem">FR | ES</button>
+    </div>
+  </div>
+</header>
+
+<main>
+  <!-- ACCUEIL -->
+  <section id="accueil" class="page active">
+    <div class="hero">
+      <h1 id="hero-title" data-i18n="home_title">Poissonnerie en gros – Import & Local</h1>
+      <p id="hero-sub" data-i18n="home_sub">Livraison fraîcheur garantie à Saint-Domingue</p>
+      <button onclick="show('boutique')" class="primary" style="margin-top:18px;position:relative;z-index:1;max-width:280px" data-i18n="btn_boutique">Voir la boutique</button>
+    </div>
+    <div class="features">
+      <div class="feature">
+        <div class="feature-icon">💰</div>
+        <h3 id="f1-title" data-i18n="feature1_title">Prix import Jusqu'à -35%</h3>
+        <p id="f1-text" data-i18n="feature1_text">Achats directs conteneurs, marges optimisées</p>
+      </div>
+      <div class="feature">
+        <div class="feature-icon">📦</div>
+        <h3 id="f2-title" data-i18n="feature2_title">Stock 52 sem. Pas de rupture</h3>
+        <p id="f2-text" data-i18n="feature2_text">Rotation garantie, traçabilité complète</p>
+      </div>
+      <div class="feature">
+        <div class="feature-icon">🚚</div>
+        <h3 id="f3-title" data-i18n="feature3_title">Livraison J+1 Santo Domingo</h3>
+        <p id="f3-text" data-i18n="feature3_text">Chaîne du froid respectée -18°C</p>
+      </div>
+    </div>
+    <div style="text-align:center;margin-top:40px;padding-bottom:10px">
+      <button onclick="quitApp()" style="background:white;border:1.5px solid var(--border);color:var(--muted);padding:10px 22px;border-radius:12px;cursor:pointer;font-weight:600;font-size:.9rem;box-shadow:0 2px 8px rgba(0,0,0,.04);transition:.15s" onmouseover="this.style.borderColor='var(--red)';this.style.color='var(--red)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'" data-i18n="quit_app">Quitter l'application</button>
+    </div>
+  </section>
+
+  <!-- BOUTIQUE -->
+  <section id="boutique" class="page">
+    <h2 class="section-title" data-i18n="boutique_title">Boutique Grossiste</h2>
+    <div class="toolbar">
+      <label><span data-i18n="vous_etes">Vous êtes:</span>
+        <select id="tierSelect">
+          <option value="gros">Grossiste</option>
+          <option value="demi">Demi-gros</option>
+          <option value="detail">Détaillant</option>
+        </select>
+      </label>
+      <span id="currentTierBadge" style="background:var(--blue);color:white;padding:4px 10px;border-radius:999px;font-weight:700;font-size:.75rem;margin-left:6px;letter-spacing:.5px"></span>
+      <span style="color:var(--muted); font-size:.9rem" data-i18n="prix_affiches">Prix affichés en RD$ / kg • ITBIS inclus en facture</span>
+    </div>
+    <div id="cat-filters" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px"></div>
+    <div id="product-grid" class="grid"></div>
+  </section>
+
+  <!-- PANIER -->
+  <section id="panier" class="page">
+    <h2 class="section-title" data-i18n="panier_title">Votre Panier</h2>
+    <div class="toolbar" style="margin-bottom:14px">
+      <label><span data-i18n="tarif_applique">Tarif appliqué:</span>
+        <select id="panier-tier-select" disabled>
+          <option value="gros">Grossiste</option>
+          <option value="demi">Demi-gros</option>
+          <option value="detail">Détaillant</option>
+        </select>
+      </label>
+      <span style="color:var(--muted);font-size:.85rem" data-i18n="changer_tarif">Changer de tarif vide le panier</span>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th data-i18n="th_produit">Produit</th>
+            <th data-i18n="th_qty">Qté (kg)</th>
+            <th data-i18n="th_pu">PU</th>
+            <th data-i18n="th_sous_total">Sous-total</th>
+            <th data-i18n="th_itbis">ITBIS</th>
+            <th data-i18n="th_total">Total</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="cart-body"></tbody>
+      </table>
+    </div>
+    <div id="cart-empty" class="empty" style="display:none; margin-top:16px">
+      <span data-i18n="cart_empty">Votre panier est vide.</span> <a href="#" onclick="show('boutique');return false" style="color:var(--blue); font-weight:600" data-i18n="go_shop">Aller à la boutique</a>
+    </div>
+    
+    <div class="client-card">
+      <h3 style="margin:0 0 12px;color:var(--navy)" data-i18n="client_info">Informations client</h3>
+      <div class="client-grid">
+        <div class="field"><label data-i18n="label_nom">Nom / Société *</label><input id="c-nom" placeholder="Ex: Restaurante El Pescador" required></div>
+        <div class="field"><label data-i18n="label_rnc">RNC / Cédula</label><input id="c-rnc" placeholder="130..."></div>
+        <div class="field"><label data-i18n="label_tel">Téléphone *</label><input id="c-tel" type="tel" placeholder="809..." required></div>
+        <div class="field"><label>Email</label><input id="c-email" type="email" placeholder="contact@..."></div>
+        <div class="field" style="grid-column:1/-1"><label data-i18n="label_adresse">Adresse de livraison *</label><input id="c-adresse" placeholder="Calle, sector, Santo Domingo" required></div>
+      </div>
+    </div>
+
+    <div class="cart-summary">
+      <div>
+        <div class="delivery">
+          <label><span data-i18n="livraison">Livraison:</span>
+            <select id="delivery-select" onchange="renderCart()">
+              <option value="0">Retrait entrepôt - Gratuit</option>
+              <option value="500">Livraison J+1 Santo Domingo - RD$ 500</option>
+              <option value="1200">Livraison express - RD$ 1,200</option>
+            </select>
+          </label>
+        </div>
+        <div style="margin-top:12px;font-size:.95rem;line-height:1.7">
+          <div><span data-i18n="sous_total_label">Sous-total:</span> <strong id="cart-subtotal">RD$ 0</strong></div>
+          <div id="cart-itbis-detail" style="color:var(--muted);font-size:.9rem"></div>
+          <div><span data-i18n="livraison_label">Livraison:</span> <strong id="cart-delivery-cost">RD$ 0</strong></div>
+          <div class="total-box" style="margin-top:6px"><span data-i18n="total_ttc">Total TTC:</span> <strong id="cart-total">RD$ 0</strong></div>
+        </div>
+      </div>
+      <div>
+        <div class="cart-actions">
+          <button class="secondary" type="button" onclick="clearCart()" data-i18n="vider_panier">Vider panier</button>
+          <button class="primary" type="button" id="btn-create-invoice" onclick="createInvoice()" data-i18n="creer_facture">1. Créer Facture</button>
+          <button class="primary" type="button" id="btn-print" onclick="printPDF()" disabled data-i18n="imprimer_pdf">2. Imprimer PDF</button>
+          <button class="primary" type="button" id="btn-whatsapp" onclick="sendWhatsApp()" disabled style="background:#25D366;box-shadow:0 4px 10px rgba(37,211,102,.3)" data-i18n="envoyer_wa">3. Envoyer WhatsApp</button>
+        </div>
+        <div id="invoice-status" style="display:none;margin-top:10px;padding:10px;background:#ecfdf5;border:1px solid #a7f3d0;border-radius:8px;color:#065f46;font-weight:600;text-align:right"></div>
+        <div id="wa-debug" style="font-size:.85rem;color:var(--muted);margin-top:8px;text-align:right"></div>
+        <div id="wa-panel" style="display:none;margin-top:14px;background:#ecfdf5;border:1px solid #a7f3d0;padding:16px;border-radius:12px;text-align:left">
+          <a id="wa-link" target="_blank" href="https://wa.me/18096395784" style="display:inline-block;background:#25D366;color:white;padding:14px 22px;border-radius:12px;font-weight:800;text-decoration:none;box-shadow:0 6px 16px rgba(37,211,102,.35);font-size:1.05rem" data-i18n="ouvrir_wa">Ouvrir WhatsApp avec la facture</a>
+          <div style="font-size:.9rem;color:#065f46;margin:12px 0 8px;line-height:1.4" data-i18n="wa_no_auto">WhatsApp n'envoie pas automatiquement. Cliquez le bouton, puis appuyez sur Envoyer dans WhatsApp.</div>
+          <textarea id="wa-text" readonly style="width:100%;height:170px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.86rem;padding:10px;border:1.5px solid #a7f3d0;border-radius:10px;background:white;resize:vertical;color:#064e3b"></textarea>
+          <div style="margin-top:8px;display:flex;justify-content:flex-end">
+            <button class="secondary" type="button" onclick="copyWaText()" style="padding:8px 14px" data-i18n="copier_msg">Copier le message</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ADMIN -->
+  <section id="admin" class="page">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:18px">
+      <h2 class="section-title" data-i18n="admin_title" style="margin:0">Administration</h2>
+      <button onclick="logoutAdmin()" style="background:white;color:var(--red);border:1.5px solid var(--red);padding:9px 16px;border-radius:10px;cursor:pointer;font-weight:700;font-size:.9rem;transition:.15s" onmouseover="this.style.background='var(--red)';this.style.color='white'" onmouseout="this.style.background='white';this.style.color='var(--red)'" data-i18n="logout">Se déconnecter</button>
+    </div>
+    
+    <div class="admin-card" style="margin-bottom:22px">
+      <h3 style="margin:0 0 14px;color:var(--navy);font-size:1.2rem" data-i18n="params_societe">Paramètres Société</h3>
+      <form id="company-form" style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div class="field" style="display:flex;flex-direction:column;gap:6px">
+          <label style="font-size:.85rem;font-weight:600;color:var(--muted)" data-i18n="label_company_name">Nom de la société</label>
+          <input id="comp-name" required style="padding:10px 12px;border:1.5px solid var(--border);border-radius:10px">
+        </div>
+        <div class="field" style="display:flex;flex-direction:column;gap:6px">
+          <label style="font-size:.85rem;font-weight:600;color:var(--muted)">RNC</label>
+          <input id="comp-rnc" style="padding:10px 12px;border:1.5px solid var(--border);border-radius:10px">
+        </div>
+        <div class="field" style="grid-column:1/-1;display:flex;flex-direction:column;gap:6px">
+          <label style="font-size:.85rem;font-weight:600;color:var(--muted)" data-i18n="label_address">Adresse</label>
+          <input id="comp-address" style="padding:10px 12px;border:1.5px solid var(--border);border-radius:10px">
+        </div>
+        <div class="field" style="display:flex;flex-direction:column;gap:6px">
+          <label style="font-size:.85rem;font-weight:600;color:var(--muted)" data-i18n="label_phone">Téléphone</label>
+          <input id="comp-phone" style="padding:10px 12px;border:1.5px solid var(--border);border-radius:10px">
+        </div>
+        <div class="field" style="display:flex;flex-direction:column;gap:6px">
+          <label style="font-size:.85rem;font-weight:600;color:var(--muted)">Email</label>
+          <input id="comp-email" type="email" style="padding:10px 12px;border:1.5px solid var(--border);border-radius:10px">
+        </div>
+        <div class="field" style="grid-column:1/-1;display:flex;flex-direction:column;gap:6px">
+          <label style="font-size:.85rem;font-weight:600;color:var(--muted)" data-i18n="label_thanks">Phrase de bas de facture</label>
+          <textarea id="comp-thanks" rows="2" style="padding:10px 12px;border:1.5px solid var(--border);border-radius:10px;resize:vertical" placeholder="Merci pour votre confiance."></textarea>
+        </div>
+        <div class="field" style="grid-column:1/-1;display:flex;flex-direction:column;gap:6px">
+          <label style="font-size:.85rem;font-weight:600;color:var(--muted)">Logo</label>
+          <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+            <input id="comp-logo" type="file" accept="image/*" style="padding:7px;border:1.5px solid var(--border);border-radius:10px;background:white">
+            <img id="comp-logo-preview" style="width:60px;height:60px;object-fit:contain;border:1px solid var(--border);border-radius:8px;display:none;background:white">
+            <input type="hidden" id="comp-logo-data">
+            <button type="button" class="secondary" onclick="removeCompanyLogo()" style="padding:8px 12px" data-i18n="remove_logo">Retirer logo</button>
+          </div>
+        <div style="grid-column:1/-1;display:flex;justify-content:flex-end">
+          <button class="primary" type="submit" style="flex:0" data-i18n="save_company">Enregistrer Société</button>
+        </div>
+      </form>
+    </div>
+    
+    <div class="admin-card" style="margin-bottom:22px">
+      <h3 style="margin:0 0 14px;color:var(--navy);font-size:1.2rem" data-i18n="parametres">Paramètres</h3>
+      <div style="display:grid;gap:22px">
+        <div>
+          <label style="font-weight:600;color:var(--muted);font-size:.9rem" data-i18n="wa_number_label">Numéro WhatsApp vendeur (format: 1809xxxxxxx sans +)</label>
+          <div style="display:flex;gap:10px;margin-top:6px;flex-wrap:wrap">
+            <input id="wa-number" placeholder="18096395784" style="flex:1;min-width:200px">
+            <button class="primary" onclick="saveWhatsApp()" style="flex:0" data-i18n="save">Enregistrer</button>
+          </div>
+        </div>
+        <div>
+          <label style="font-weight:600;color:var(--muted);font-size:.9rem" data-i18n="edit_home">Modifier Accueil</label>
+          <form id="home-form" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:8px">
+            <div class="field" style="grid-column:1/-1;display:flex;flex-direction:column;gap:6px"><label style="font-size:.85rem;color:var(--muted);font-weight:600">Titre hero</label><input id="h-title" required></div>
+            <div class="field" style="grid-column:1/-1;display:flex;flex-direction:column;gap:6px"><label style="font-size:.85rem;color:var(--muted);font-weight:600">Sous-titre hero</label><input id="h-sub" required></div>
+            <div class="field" style="display:flex;flex-direction:column;gap:6px"><label style="font-size:.85rem;color:var(--muted);font-weight:600">Feature 1 - Titre</label><input id="h-f1t" required></div>
+            <div class="field" style="display:flex;flex-direction:column;gap:6px"><label style="font-size:.85rem;color:var(--muted);font-weight:600">Feature 1 - Texte</label><input id="h-f1d" required></div>
+            <div class="field" style="display:flex;flex-direction:column;gap:6px"><label style="font-size:.85rem;color:var(--muted);font-weight:600">Feature 2 - Titre</label><input id="h-f2t" required></div>
+            <div class="field" style="display:flex;flex-direction:column;gap:6px"><label style="font-size:.85rem;color:var(--muted);font-weight:600">Feature 2 - Texte</label><input id="h-f2d" required></div>
+            <div class="field" style="display:flex;flex-direction:column;gap:6px"><label style="font-size:.85rem;color:var(--muted);font-weight:600">Feature 3 - Titre</label><input id="h-f3t" required></div>
+            <div class="field" style="display:flex;flex-direction:column;gap:6px"><label style="font-size:.85rem;color:var(--muted);font-weight:600">Feature 3 - Texte</label><input id="h-f3d" required></div>
+            <div style="grid-column:1/-1;display:flex;justify-content:flex-end"><button class="primary" type="submit" style="flex:0" data-i18n="save_home">Sauvegarder Accueil</button></div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <h3 style="color:var(--navy);margin:24px 0 12px" data-i18n="cat_prod">Catégories & Produits</h3>
+    
+    <div class="admin-card" style="margin-bottom:16px">
+      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:end">
+        <div style="flex:1;min-width:200px">
+          <label style="font-size:.85rem;font-weight:600;color:var(--muted)" data-i18n="new_cat">Nouvelle catégorie</label>
+          <input id="cat-input" placeholder="Ex: Crustacés" style="width:100%;margin-top:4px;padding:10px 12px;border:1.5px solid var(--border);border-radius:10px">
+        </div>
+        <button class="primary" type="button" onclick="addCategory()" style="height:42px" data-i18n="add_cat">Ajouter catégorie</button>
+      </div>
+      <div id="cat-list" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px"></div>
+    </div>
+
+    <form id="product-form" style="background:white;padding:20px;border-radius:14px;box-shadow:0 6px 18px rgba(10,37,64,.07);border:1px solid var(--border);display:grid;grid-template-columns:repeat(12,1fr);gap:12px;align-items:end;margin-bottom:22px">
+      <div class="field" style="grid-column:span 4;display:flex;flex-direction:column;gap:6px">
+        <label data-i18n="prod_name">Nom du produit</label>
+        <input id="p-name" placeholder="Ex: Saumon Norvège" required style="padding:10px 12px;border:1.5px solid var(--border);border-radius:10px">
+      </div>
+      <div class="field" style="grid-column:span 3;display:flex;flex-direction:column;gap:6px">
+        <label data-i18n="category">Catégorie</label>
+        <select id="p-cat" required style="padding:10px 12px;border:1.5px solid var(--border);border-radius:10px"></select>
+      </div>
+      <div class="field" style="grid-column:span 2;display:flex;flex-direction:column;gap:6px">
+        <label>ITBIS %</label>
+        <select id="p-itbis" style="padding:10px 12px;border:1.5px solid var(--border);border-radius:10px">
+          <option value="18" selected>18%</option>
+          <option value="8">8%</option>
+          <option value="0">0%</option>
+        </select>
+      </div>
+      <div class="field" style="grid-column:span 3;display:flex;flex-direction:column;gap:6px">
+        <label data-i18n="image">Image vignette</label>
+        <input id="p-image" type="file" accept="image/*" style="padding:7px;border:1.5px solid var(--border);border-radius:10px;background:white">
+      </div>
+      <div class="field" style="grid-column:span 2;display:flex;flex-direction:column;gap:6px">
+        <label data-i18n="price_gros">Prix gros</label>
+        <input id="p-gros" type="number" min="0" step="1" placeholder="110" required style="padding:10px 12px;border:1.5px solid var(--border);border-radius:10px">
+      </div>
+      <div class="field" style="grid-column:span 2;display:flex;flex-direction:column;gap:6px">
+        <label data-i18n="price_demi">Prix demi-gros</label>
+        <input id="p-demi" type="number" min="0" step="1" placeholder="140" required style="padding:10px 12px;border:1.5px solid var(--border);border-radius:10px">
+      </div>
+      <div class="field" style="grid-column:span 2;display:flex;flex-direction:column;gap:6px">
+        <label data-i18n="price_detail">Prix détail</label>
+        <input id="p-detail" type="number" min="0" step="1" placeholder="170" required style="padding:10px 12px;border:1.5px solid var(--border);border-radius:10px">
+      </div>
+      <div class="field" style="grid-column:span 3;display:flex;align-items:center;gap:10px">
+        <img id="p-preview" style="width:48px;height:48px;object-fit:cover;border-radius:8px;border:1px solid var(--border);display:none">
+        <span id="p-preview-text" style="color:var(--muted);font-size:.85rem" data-i18n="no_image">Aucune image</span>
+        <input type="hidden" id="p-image-data">
+      </div>
+      <div class="field" style="grid-column:span 3;display:flex;gap:8px;align-items:end">
+        <button class="primary" type="submit" id="p-submit" style="flex:1" data-i18n="save">Enregistrer</button>
+        <button class="secondary" type="button" id="p-cancel" onclick="cancelEditProduct()" style="display:none" data-i18n="cancel">Annuler</button>
+      </div>
+    </form>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:56px"></th>
+            <th data-i18n="th_prod_admin">Produit</th>
+            <th data-i18n="th_cat">Catégorie</th>
+            <th>Gros</th>
+            <th>Demi-gros</th>
+            <th>Détail</th>
+            <th>ITBIS</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="admin-body"></tbody>
+      </table>
+    </div>
+
+    <div class="admin-card" style="margin-top:28px">
+      <h3 style="margin:0 0 14px;color:var(--navy);font-size:1.2rem" data-i18n="history">Historique clients & commandes</h3>
+      <div style="display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap">
+        <input id="order-search" placeholder="Rechercher par nom, tél ou facture..." style="flex:1;min-width:220px" oninput="renderOrders(this.value)">
+        <button class="secondary" onclick="exportOrders()" data-i18n="export_json">Exporter JSON</button>
+        <button class="danger" onclick="clearOrders()" data-i18n="clear_history">Effacer historique</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Date</th><th data-i18n="invoice">Facture</th><th data-i18n="name">Nom</th><th>Tél</th><th>Total</th><th data-i18n="actions">Actions</th></tr>
+          </thead>
+          <tbody id="orders-body"></tbody>
+        </table>
+      </div>
+      <div id="order-details" style="margin-top:14px;display:none"></div>
+    </div>
+
+    <div class="admin-card" style="margin-top:28px">
+      <h3 style="margin:0 0 14px;color:var(--navy);font-size:1.2rem" data-i18n="compta">Comptabilité simplifiée</h3>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin:12px 0">
+        <div style="background:#f0fdf4;border:1px solid #bbf7d0;padding:16px;border-radius:12px">
+          <div style="font-size:.85rem;color:#166534;font-weight:600" data-i18n="total_recettes">Total Recettes</div>
+          <div id="compta-recettes" style="font-size:1.6rem;font-weight:800;color:#15803d;margin-top:4px">RD$ 0</div>
+        </div>
+        <div style="background:#fef2f2;border:1px solid #fecaca;padding:16px;border-radius:12px">
+          <div style="font-size:.85rem;color:#991b1b;font-weight:600" data-i18n="total_depenses">Total Dépenses</div>
+          <div id="compta-depenses" style="font-size:1.6rem;font-weight:800;color:#b91c1c;margin-top:4px">RD$ 0</div>
+        </div>
+        <div style="background:#eff6ff;border:1px solid #bfdbfe;padding:16px;border-radius:12px">
+          <div style="font-size:.85rem;color:#1e40af;font-weight:600" data-i18n="solde">Solde</div>
+          <div id="compta-solde" style="font-size:1.6rem;font-weight:800;color:#1d4ed8;margin-top:4px">RD$ 0</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap">
+        <button class="primary" onclick="ajouterRecette()" style="background:#16a34a;box-shadow:0 4px 10px rgba(22,163,74,.25)" data-i18n="add_income">Ajouter Recette</button>
+        <button class="primary" onclick="ajouterDepense()" style="background:#dc2626;box-shadow:0 4px 10px rgba(220,38,38,.25)" data-i18n="add_expense">Ajouter Dépense</button>
+        <button class="secondary" onclick="genererResumeCompta()" data-i18n="gen_summary">Générer résumé comptable</button>
+      </div>
+      <div id="compta-form-wrap" style="display:none;margin-bottom:14px;background:#f8fafc;border:1px solid var(--border);padding:14px;border-radius:10px">
+        <form id="compta-form" style="display:grid;grid-template-columns:2fr 1fr 1fr auto;gap:10px;align-items:end">
+          <div><label style="font-size:.8rem;color:var(--muted);font-weight:600" data-i18n="libelle">Libellé</label><input id="cf-libelle" required style="width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:8px"></div>
+          <div><label style="font-size:.8rem;color:var(--muted);font-weight:600" data-i18n="montant">Montant RD$</label><input id="cf-montant" type="number" min="1" step="1" required style="width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:8px"></div>
+          <div><label style="font-size:.8rem;color:var(--muted);font-weight:600" data-i18n="date">Date</label><input id="cf-date" type="date" required style="width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:8px"></div>
+          <div style="display:flex;gap:6px">
+            <button class="primary" type="submit" id="cf-submit" data-i18n="add">Ajouter</button>
+            <button class="secondary" type="button" onclick="hideComptaForm()" data-i18n="cancel">Annuler</button>
+          </div>
+        </form>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Date</th><th data-i18n="type">Type</th><th data-i18n="libelle">Libellé</th><th data-i18n="montant">Montant RD$</th><th data-i18n="invoice_linked">Facture liée</th><th></th></tr></thead>
+          <tbody id="compta-body"></tbody>
+        </table>
+      </div>
+      <div id="resume-compta" style="display:none;margin-top:14px;background:#f8fafc;border:1px solid var(--border);padding:16px;border-radius:12px"></div>
+    </div>
+  </section>
+</main>
+
+<div id="admin-lock" class="lock-overlay" style="display:none">
+  <div class="lock-box">
+    <h3 data-i18n="admin_access">Accès Admin</h3>
+    <p style="color:var(--muted);margin:4px 0 0" data-i18n="enter_pass">Entrez le mot de passe pour continuer</p>
+    <input id="admin-pass" type="password" placeholder="Mot de passe" onkeydown="if(event.key==='Enter')checkAdminPass()">
+    <div style="display:flex;gap:10px;margin-top:14px">
+      <button class="secondary" onclick="closeAdminLock()" style="flex:1" data-i18n="cancel">Annuler</button>
+      <button class="primary" onclick="checkAdminPass()" style="flex:1" data-i18n="validate">Valider</button>
+    </div>
+    <div id="admin-error" style="color:var(--red);margin-top:10px;font-size:.9rem;display:none" data-i18n="wrong_pass">Mot de passe incorrect</div>
+  </div>
+</div>
+
+<script>
+const PRODUCTS_KEY = 'cm_products';
+const CART_KEY = 'cm_cart';
+const CLIENT_KEY = 'cm_client';
+const WHATSAPP_KEY = 'cm_whatsapp';
+const HOME_KEY = 'cm_home';
+const ADMIN_AUTH_KEY = 'cm_admin_auth';
+const ORDERS_KEY = 'cm_orders';
+const INVOICE_COUNTER_KEY = 'cm_invoice_counter';
+const COMPTA_KEY = 'cm_compta';
+const CURRENT_INVOICE_KEY = 'cm_current_invoice';
+const CATEGORIES_KEY = 'cm_categories';
+const COMPANY_KEY = 'cm_company';
+const TIER_KEY = 'cm_tier';
+const LANG_KEY = 'cm_lang';
+
+const i18n = {
+  fr: {
+    nav_accueil:"Accueil", nav_boutique:"Boutique", nav_panier:"Panier", nav_admin:"Admin",
+    home_title:"Poissonnerie en gros – Import & Local", home_sub:"Livraison fraîcheur garantie à Saint-Domingue", btn_boutique:"Voir la boutique",
+    feature1_title:"Prix import Jusqu'à -35%", feature1_text:"Achats directs conteneurs, marges optimisées", feature2_title:"Stock 52 sem. Pas de rupture", feature2_text:"Rotation garantie, traçabilité complète", feature3_title:"Livraison J+1 Santo Domingo", feature3_text:"Chaîne du froid respectée -18°C",
+    boutique_title:"Boutique Grossiste", vous_etes:"Vous êtes:", prix_affiches:"Prix affichés en RD$ / kg • ITBIS inclus en facture",
+    tier_gros:"Grossiste", tier_demi:"Demi-gros", tier_detail:"Détaillant",
+    panier_title:"Votre Panier", tarif_applique:"Tarif appliqué:", changer_tarif:"Changer de tarif vide le panier",
+    th_produit:"Produit", th_qty:"Qté (kg)", th_pu:"PU", th_sous_total:"Sous-total", th_itbis:"ITBIS", th_total:"Total",
+    cart_empty:"Votre panier est vide.", go_shop:"Aller à la boutique",
+    client_info:"Informations client", label_nom:"Nom / Société *", label_rnc:"RNC / Cédula", label_tel:"Téléphone *", label_adresse:"Adresse de livraison *",
+    livraison:"Livraison:", retrait:"Retrait entrepôt - Gratuit", liv_j1:"Livraison J+1 Santo Domingo - RD$ 500", liv_express:"Livraison express - RD$ 1,200",
+    sous_total_label:"Sous-total:", livraison_label:"Livraison:", total_ttc:"Total TTC:",
+    vider_panier:"Vider panier", creer_facture:"1. Créer Facture", imprimer_pdf:"2. Imprimer PDF", envoyer_wa:"3. Envoyer WhatsApp",
+    facture_creee:"Facture", facture_creee_suffix:"créée", facture_msg:"Vous pouvez maintenant imprimer ou envoyer sur WhatsApp",
+    wa_no_auto:"WhatsApp n'envoie pas automatiquement. Cliquez le bouton, puis appuyez sur Envoyer dans WhatsApp.",
+    ouvrir_wa:"Ouvrir WhatsApp avec la facture", copier_msg:"Copier le message",
+    admin_title:"Administration", params_societe:"Paramètres Société", label_company_name:"Nom de la société", label_address:"Adresse", label_phone:"Téléphone", label_thanks:"Phrase de bas de facture", remove_logo:"Retirer logo", save_company:"Enregistrer Société",
+    parametres:"Paramètres", wa_number_label:"Numéro WhatsApp vendeur (format: 1809xxxxxxx sans +)", save:"Enregistrer", edit_home:"Modifier Accueil", save_home:"Sauvegarder Accueil",
+    cat_prod:"Catégories & Produits", new_cat:"Nouvelle catégorie", add_cat:"Ajouter catégorie",
+    prod_name:"Nom du produit", category:"Catégorie", image:"Image vignette", price_gros:"Prix gros", price_demi:"Prix demi-gros", price_detail:"Prix détail", no_image:"Aucune image", cancel:"Annuler",
+    th_prod_admin:"Produit", th_cat:"Catégorie", history:"Historique clients & commandes", export_json:"Exporter JSON", clear_history:"Effacer historique", invoice:"Facture", name:"Nom", actions:"Actions",
+    compta:"Comptabilité simplifiée", total_recettes:"Total Recettes", total_depenses:"Total Dépenses", solde:"Solde", add_income:"Ajouter Recette", add_expense:"Ajouter Dépense", gen_summary:"Générer résumé comptable",
+    libelle:"Libellé", montant:"Montant RD$", date:"Date", add:"Ajouter", type:"Type", invoice_linked:"Facture liée",
+    admin_access:"Accès Admin", enter_pass:"Entrez le mot de passe pour continuer", validate:"Valider", wrong_pass:"Mot de passe incorrect",
+    pdf_facture:"FACTURE N°", pdf_client:"Client:", pdf_date:"Date:", pdf_tarif:"Tarif appliqué:", pdf_produit:"Produit", pdf_qty:"Qté", pdf_pu:"PU", pdf_sous_total:"Sous-total", pdf_total_ttc:"Total TTC", pdf_sous_total_label:"Sous-total:", pdf_livraison:"Livraison:", pdf_total:"TOTAL TTC:", pdf_itbis:"ITBIS", pdf_thanks_default:"Merci pour votre confiance.",
+    tier_gros_pdf:"GROSSISTE", tier_demi_pdf:"DEMI-GROS", tier_detail_pdf:"DETAIL",
+    logout:"Se déconnecter",
+    quit_app:"Quitter l'application"
+  },
+  es: {
+    nav_accueil:"Inicio", nav_boutique:"Tienda", nav_panier:"Carrito", nav_admin:"Admin",
+    home_title:"Pescadería al por mayor – Importación y Local", home_sub:"Entrega con frescura garantizada en Santo Domingo", btn_boutique:"Ver tienda",
+    feature1_title:"Precio importación Hasta -35%", feature1_text:"Compras directas de contenedores, márgenes optimizados", feature2_title:"Stock 52 sem. Sin ruptura", feature2_text:"Rotación garantizada, trazabilidad completa", feature3_title:"Entrega D+1 Santo Domingo", feature3_text:"Cadena de frío respetada -18°C",
+    boutique_title:"Tienda Mayorista", vous_etes:"Usted es:", prix_affiches:"Precios en RD$ / kg • ITBIS incluido en factura",
+    tier_gros:"Mayorista", tier_demi:"Medio mayorista", tier_detail:"Detallista",
+    panier_title:"Su Carrito", tarif_applique:"Tarifa aplicada:", changer_tarif:"Cambiar tarifa vacía el carrito",
+    th_produit:"Producto", th_qty:"Cant. (kg)", th_pu:"PU", th_sous_total:"Subtotal", th_itbis:"ITBIS", th_total:"Total",
+    cart_empty:"Su carrito está vacío.", go_shop:"Ir a la tienda",
+    client_info:"Información del cliente", label_nom:"Nombre / Empresa *", label_rnc:"RNC / Cédula", label_tel:"Teléfono *", label_adresse:"Dirección de entrega *",
+    livraison:"Entrega:", retrait:"Recogida almacén - Gratis", liv_j1:"Entrega J+1 Santo Domingo - RD$ 500", liv_express:"Entrega express - RD$ 1,200",
+    sous_total_label:"Subtotal:", livraison_label:"Entrega:", total_ttc:"Total ITBIS incl.:",
+    vider_panier:"Vaciar carrito", creer_facture:"1. Crear Factura", imprimer_pdf:"2. Imprimir PDF", envoyer_wa:"3. Enviar WhatsApp",
+    facture_creee:"Factura", facture_creee_suffix:"creada", facture_msg:"Ahora puede imprimir o enviar por WhatsApp",
+    wa_no_auto:"WhatsApp no envía automáticamente. Haga clic en el botón, luego presione Enviar en WhatsApp.",
+    ouvrir_wa:"Abrir WhatsApp con la factura", copier_msg:"Copiar mensaje",
+    admin_title:"Administración", params_societe:"Parámetros Empresa", label_company_name:"Nombre de la empresa", label_address:"Dirección", label_phone:"Teléfono", label_thanks:"Frase pie de factura", remove_logo:"Quitar logo", save_company:"Guardar Empresa",
+    parametres:"Configuración", wa_number_label:"Número WhatsApp vendedor (formato: 1809xxxxxxx sin +)", save:"Guardar", edit_home:"Modificar Inicio", save_home:"Guardar Inicio",
+    cat_prod:"Categorías y Productos", new_cat:"Nueva categoría", add_cat:"Añadir categoría",
+    prod_name:"Nombre del producto", category:"Categoría", image:"Imagen miniatura", price_gros:"Precio mayorista", price_demi:"Precio medio mayorista", price_detail:"Precio detalle", no_image:"Sin imagen", cancel:"Cancelar",
+    th_prod_admin:"Producto", th_cat:"Categoría", history:"Historial clientes y pedidos", export_json:"Exportar JSON", clear_history:"Borrar historial", invoice:"Factura", name:"Nombre", actions:"Acciones",
+    compta:"Contabilidad simplificada", total_recettes:"Total Ingresos", total_depenses:"Total Gastos", solde:"Balance", add_income:"Añadir Ingreso", add_expense:"Añadir Gasto", gen_summary:"Generar resumen contable",
+    libelle:"Descripción", montant:"Monto RD$", date:"Fecha", add:"Añadir", type:"Tipo", invoice_linked:"Factura vinculada",
+    admin_access:"Acceso Admin", enter_pass:"Ingrese la contraseña para continuar", validate:"Validar", wrong_pass:"Contraseña incorrecta",
+    pdf_facture:"FACTURA N°", pdf_client:"Cliente:", pdf_date:"Fecha:", pdf_tarif:"Tarifa aplicada:", pdf_produit:"Producto", pdf_qty:"Cant", pdf_pu:"PU", pdf_sous_total:"Subtotal", pdf_total_ttc:"Total", pdf_sous_total_label:"Subtotal:", pdf_livraison:"Entrega:", pdf_total:"TOTAL:", pdf_itbis:"ITBIS", pdf_thanks_default:"Gracias por su confianza.",
+    tier_gros_pdf:"MAYORISTA", tier_demi_pdf:"MEDIO MAYORISTA", tier_detail_pdf:"DETALLE",
+    logout:"Cerrar sesión",
+    quit_app:"Salir de la aplicación"
+  }
+};
+function getLang(){ return localStorage.getItem(LANG_KEY)||'fr'; }
+function t(k){ const l=getLang(); return (i18n[l]&&i18n[l][k])||i18n.fr[k]||k; }
+function toggleLang(){ const c=getLang(); localStorage.setItem(LANG_KEY, c==='fr'?'es':'fr'); applyLang(); renderBoutique(); renderCart(); }
+function applyLang(){
+  document.querySelectorAll('[data-i18n]').forEach(el=>{ el.textContent = t(el.getAttribute('data-i18n')); });
+  const ts=document.getElementById('tierSelect'); if(ts){ ts.options[0].text=t('tier_gros'); ts.options[1].text=t('tier_demi'); ts.options[2].text=t('tier_detail'); }
+  const ps=document.getElementById('panier-tier-select'); if(ps){ ps.options[0].text=t('tier_gros'); ps.options[1].text=t('tier_demi'); ps.options[2].text=t('tier_detail'); }
+  const ds=document.getElementById('delivery-select'); if(ds){ ds.options[0].text=t('retrait'); ds.options[1].text=t('liv_j1'); ds.options[2].text=t('liv_express'); }
+  const b=document.getElementById('currentTierBadge'); if(b&&ts){ b.textContent=ts.options[ts.selectedIndex].text.toUpperCase(); }
+  const tg=document.getElementById('lang-toggle'); if(tg){ tg.textContent=getLang().toUpperCase()+' | '+(getLang()==='fr'?'ES':'FR'); }
+  document.documentElement.lang=getLang();
+}
+
+let editingProductId = null;
+window.currentTier = localStorage.getItem(TIER_KEY) || 'detail';
+let currentComptaType = null;
+let selectedCategory = 'all';
+
+function formatPhoneDisplay(num){
+  const clean = (num||'').replace(/\D/g,'');
+  if(clean.length===11 && clean.startsWith('1')){
+    return `+1 ${clean.slice(1,4)} ${clean.slice(4,7)} ${clean.slice(7)}`;
+  }
+  return clean ? '+' + clean : '';
+}
+
+function loadCompany(){
+  let c = JSON.parse(localStorage.getItem(COMPANY_KEY) || 'null');
+  if(!c){
+    c = { name: "Centrale Marée Import & Local", rnc:"", address:"", phone:"+1 809 639 5784", email:"", logo:"", thanks:"Merci pour votre confiance." };
+    localStorage.setItem(COMPANY_KEY, JSON.stringify(c));
+  }
+  if(c.thanks===undefined) c.thanks="Merci pour votre confiance.";
+  return c;
+}
+function saveCompany(c){ localStorage.setItem(COMPANY_KEY, JSON.stringify(c)); }
+function renderCompanyHeader(){
+  const c = loadCompany();
+  const nameEl = document.getElementById('header-company-name');
+  if(nameEl) nameEl.textContent = c.name || "Centrale Marée Import & Local";
+  const logoImg = document.getElementById('header-logo');
+  const emoji = document.getElementById('logo-emoji');
+  if(c.logo && logoImg){
+    logoImg.src = c.logo;
+    logoImg.style.display = 'inline-block';
+    if(emoji) emoji.style.display='none';
+  } else {
+    if(logoImg) logoImg.style.display='none';
+    if(emoji) emoji.style.display='inline';
+  }
+  document.title = c.name || 'Centrale Marée';
+}
+function removeCompanyLogo(){
+  document.getElementById('comp-logo-data').value='';
+  const preview = document.getElementById('comp-logo-preview');
+  if(preview) preview.style.display='none';
+  const inp = document.getElementById('comp-logo');
+  if(inp) inp.value='';
+}
+
+function isAdminAuthed(){ return sessionStorage.getItem(ADMIN_AUTH_KEY)==='true'; }
+function closeAdminLock(){ document.getElementById('admin-lock').style.display='none'; document.getElementById('admin-pass').value=''; document.getElementById('admin-error').style.display='none'; }
+function checkAdminPass(){ const pass=document.getElementById('admin-pass').value; if(pass==='kavonniocean26'){ sessionStorage.setItem(ADMIN_AUTH_KEY,'true'); closeAdminLock(); show('admin'); } else { document.getElementById('admin-error').style.display='block'; } }
+function logoutAdmin(){
+  localStorage.removeItem('cm_admin');
+  sessionStorage.removeItem(ADMIN_AUTH_KEY);
+  window.isAdmin = false;
+  const msg = getLang()==='es' ? 'Desconectado' : 'Déconnecté';
+  const toast = document.createElement('div');
+  toast.textContent = msg;
+  toast.style.cssText = 'position:fixed;top:20px;right:20px;background:#0a2540;color:white;padding:12px 18px;border-radius:10px;box-shadow:0 6px 20px rgba(0,0,0,.2);z-index:9999;font-weight:600;animation:fade .2s ease';
+  document.body.appendChild(toast);
+  setTimeout(()=>{ toast.style.opacity='0'; toast.style.transition='opacity .3s'; setTimeout(()=>toast.remove(),300); },1800);
+  show('accueil');
+}
+function quitApp(){
+  const msg = getLang()==='es' ? '¿Salir de la aplicación y cerrar sesión?' : 'Quitter l\'application et se déconnecter ?';
+  if(confirm(msg)){
+    localStorage.removeItem('cm_admin');
+    sessionStorage.removeItem(ADMIN_AUTH_KEY);
+    window.location.reload(true);
+  }
+}
+
+function getCurrentInvoice(){ return sessionStorage.getItem(CURRENT_INVOICE_KEY); }
+function setCurrentInvoice(inv){ if(inv) sessionStorage.setItem(CURRENT_INVOICE_KEY, inv); else sessionStorage.removeItem(CURRENT_INVOICE_KEY); }
+
+function resetInvoiceUI(){
+  const inv = getCurrentInvoice();
+  const btnCreate = document.getElementById('btn-create-invoice');
+  const btnPrint = document.getElementById('btn-print');
+  const btnWa = document.getElementById('btn-whatsapp');
+  const status = document.getElementById('invoice-status');
+  if(!btnCreate) return;
+  const cart = JSON.parse(localStorage.getItem(CART_KEY) || '[]');
+  const hasItems = cart.length>0;
+  if(inv && hasItems){
+    btnCreate.disabled = true;
+    btnCreate.textContent = `${t('facture_creee')} ${inv} ✓`;
+    btnCreate.style.opacity = '0.7';
+    btnPrint.disabled = false;
+    btnWa.disabled = false;
+    if(status){ status.style.display='block'; status.innerHTML = `✅ <strong>${t('facture_creee')} ${inv} ${t('facture_creee_suffix')}</strong> — ${t('facture_msg')}`; }
+  } else {
+    btnCreate.disabled = !hasItems;
+    btnCreate.textContent = t('creer_facture');
+    btnCreate.style.opacity = '1';
+    btnPrint.disabled = true;
+    btnWa.disabled = true;
+    if(status){ status.style.display='none'; }
+    if(!hasItems) setCurrentInvoice(null);
+  }
+}
+
+function show(page){
+  if(page==='admin' && !isAdminAuthed()){
+    document.getElementById('admin-lock').style.display='flex';
+    setTimeout(()=>document.getElementById('admin-pass').focus(),100);
+    return;
+  }
+  document.querySelectorAll('.page').forEach(s=>{ s.style.display='none'; s.classList.remove('active'); });
+  const el = document.getElementById(page);
+  el.style.display='block'; el.classList.add('active');
+  document.querySelectorAll('nav button').forEach(b=>b.classList.remove('active'));
+  document.getElementById('nav-'+page).classList.add('active');
+  if(page==='boutique') renderBoutique();
+  if(page==='panier') renderCart();
+  if(page==='admin') renderAdmin();
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+function loadProducts(){
+  let products = JSON.parse(localStorage.getItem(PRODUCTS_KEY));
+  if(!products || !products.length){
+    products = [
+      {id:1, name:"Tilapia negra", gros:110, demi:140, detail:170, category:"Poissons", itbis:18, image:""},
+      {id:2, name:"Chillo", gros:360, demi:450, detail:550, category:"Poissons", itbis:18, image:""},
+      {id:3, name:"Camarón 16/20", gros:215, demi:270, detail:325, category:"Crustacés", itbis:18, image:""},
+      {id:4, name:"Pulpo criollo", gros:245, demi:310, detail:375, category:"Import", itbis:18, image:""},
+      {id:5, name:"Lambí natural", gros:185, demi:235, detail:280, category:"Local", itbis:18, image:""}
+    ];
+    localStorage.setItem(PRODUCTS_KEY, JSON.stringify(products));
+  }
+  let changed = false;
+  products = products.map(p=>{
+    if(p.itbis===undefined){ p.itbis=18; changed=true; }
+    if(!p.category){ p.category="Import"; changed=true; }
+    if(p.image===undefined){ p.image=""; changed=true; }
+    return p;
+  });
+  if(changed) localStorage.setItem(PRODUCTS_KEY, JSON.stringify(products));
+  return products;
+}
+
+function saveProducts(p){ localStorage.setItem(PRODUCTS_KEY, JSON.stringify(p)); }
+
+function loadCategories(){
+  let cats = JSON.parse(localStorage.getItem(CATEGORIES_KEY));
+  if(!cats || !cats.length){
+    cats = ["Import", "Local", "Crustacés", "Poissons"];
+    localStorage.setItem(CATEGORIES_KEY, JSON.stringify(cats));
+  }
+  return cats;
+}
+function saveCategories(cats){ localStorage.setItem(CATEGORIES_KEY, JSON.stringify(cats)); }
+function renderCategories(){
+  const cats = loadCategories();
+  const select = document.getElementById('p-cat');
+  if(select){
+    select.innerHTML = '';
+    cats.forEach(c=>{
+      const opt = document.createElement('option');
+      opt.value = c; opt.textContent = c;
+      select.appendChild(opt);
+    });
+  }
+  const list = document.getElementById('cat-list');
+  if(list){
+    list.innerHTML='';
+    cats.forEach(c=>{
+      const chip = document.createElement('div');
+      chip.style.cssText = 'display:flex;align-items:center;gap:6px;background:#f1f5f9;padding:6px 10px;border-radius:999px;font-size:.85rem;font-weight:600;color:var(--navy)';
+      chip.innerHTML = `<span>${c}</span><button onclick="deleteCategory('${c.replace(/'/g,"\\'")}')" style="background:none;border:none;color:var(--red);cursor:pointer;font-weight:700">×</button>`;
+      list.appendChild(chip);
+    });
+  }
+  renderCategoryFilters();
+}
+function addCategory(){
+  const inp = document.getElementById('cat-input');
+  const val = (inp.value||'').trim();
+  if(!val) return;
+  const cats = loadCategories();
+  if(!cats.includes(val)){
+    cats.push(val);
+    saveCategories(cats);
+    renderCategories();
+  }
+  inp.value='';
+}
+function deleteCategory(name){
+  const cats = loadCategories();
+  const products = loadProducts();
+  const used = products.some(p=>p.category===name);
+  if(used){ alert(getLang()==='es'?'Categoría usada por productos. Reasigne primero.':'Catégorie utilisée par des produits. Réaffectez d\'abord.'); return; }
+  saveCategories(cats.filter(c=>c!==name));
+  renderCategories();
+}
+function renderCategoryFilters(){
+  const container = document.getElementById('cat-filters');
+  if(!container) return;
+  const cats = loadCategories();
+  container.innerHTML='';
+  const allBtn = document.createElement('button');
+  allBtn.className = 'cat-btn' + (selectedCategory==='all' ? ' active' : '');
+  allBtn.textContent = getLang()==='es'?'Todos':'Tous';
+  allBtn.onclick = ()=>{ selectedCategory='all'; renderBoutique(); };
+  container.appendChild(allBtn);
+  cats.forEach(c=>{
+    const btn = document.createElement('button');
+    btn.className = 'cat-btn' + (selectedCategory===c ? ' active' : '');
+    btn.textContent = c;
+    btn.onclick = ()=>{ selectedCategory=c; renderBoutique(); };
+    container.appendChild(btn);
+  });
+}
+
+function loadHomeData(){
+  let data = JSON.parse(localStorage.getItem(HOME_KEY));
+  if(!data){
+    data = {title:"Du monde à votre chambre froide", subtitle:"Import gros + filière locale dominicaine. Prix GROS, DEMI-GROS, DÉTAIL.", f1t:"Prix import Jusqu'à -35%", f1d:"Achats directs conteneurs, marges optimisées", f2t:"Stock 52 sem. Pas de rupture", f2d:"Rotation garantie, traçabilité complète", f3t:"Livraison J+1 Santo Domingo", f3d:"Chaîne du froid respectée -18°C"};
+  }
+  return data;
+}
+function renderHome(){
+  const d = loadHomeData();
+  document.getElementById('hero-title').textContent = t('home_title');
+  document.getElementById('hero-sub').textContent = t('home_sub');
+  document.getElementById('f1-title').textContent = t('feature1_title');
+  document.getElementById('f1-text').textContent = t('feature1_text');
+  document.getElementById('f2-title').textContent = t('feature2_title');
+  document.getElementById('f2-text').textContent = t('feature2_text');
+  document.getElementById('f3-title').textContent = t('feature3_title');
+  document.getElementById('f3-text').textContent = t('feature3_text');
+}
+
+function renderBoutique(){ renderProducts(); }
+
+function renderProducts(){
+  renderCategoryFilters();
+  const products = loadProducts();
+  const grid = document.getElementById('product-grid');
+  const currentTier = window.currentTier || 'detail';
+  const tierSelect = document.getElementById('tierSelect');
+  if(tierSelect) tierSelect.value = currentTier;
+  const badge = document.getElementById('currentTierBadge');
+  if(badge && tierSelect){
+    const opt = tierSelect.options[tierSelect.selectedIndex];
+    badge.textContent = opt ? opt.text.toUpperCase() : '';
+  }
+  grid.innerHTML = '';
+  grid.className = '';
+  const filtered = selectedCategory==='all' ? products : products.filter(p=>p.category===selectedCategory);
+  if(filtered.length===0){
+    grid.innerHTML = `<div class="empty">${getLang()==='es'?'Ningún producto en esta categoría':'Aucun produit dans cette catégorie'}</div>`;
+    return;
+  }
+  const list = document.createElement('div');
+  list.className = 'product-list';
+  filtered.forEach(p=>{
+    const price = currentTier==='gros'?p.gros:currentTier==='demi'?p.demi:p.detail;
+    const row = document.createElement('div');
+    row.className = 'product-row';
+    row.innerHTML = `
+      ${p.image ? `<img src="${p.image}" alt="${p.name}">` : `<div class="pr-icon">🐟</div>`}
+      <div class="pr-name" title="${p.name}">${p.name}</div>
+      <div class="pr-cat">${p.category||'Import'}</div>
+      <div class="pr-price">RD$ ${price.toLocaleString()}</div>
+      <div class="pr-itbis">${p.itbis||18}%</div>
+      <div class="pr-qty"><input type="number" min="1" step="1" value="1" id="qty-${p.id}"></div>
+      <div class="pr-btn"><button class="primary" onclick="addToCart(${p.id})">${getLang()==='es'?'Añadir':'Ajouter'}</button></div>
+    `;
+    list.appendChild(row);
+  });
+  grid.appendChild(list);
+}
+
+function addToCart(id){
+  const products = loadProducts();
+  const p = products.find(x=>x.id===id);
+  const tierKey = window.currentTier || 'detail';
+  const qty = Math.max(1, parseInt(document.getElementById(`qty-${id}`).value)||1);
+  const price = tierKey==='gros'?p.gros:tierKey==='demi'?p.demi:p.detail;
+  const itbis = p.itbis ?? 18;
+  let cart = JSON.parse(localStorage.getItem(CART_KEY)) || [];
+  const existing = cart.find(i=>i.id===id && i.tier===tierKey);
+  if(existing){ existing.qty += qty; existing.itbis = itbis; existing.price = price; }
+  else { cart.push({id, name:p.name, qty, price, tier:tierKey, itbis, category:p.category, image:p.image}); }
+  localStorage.setItem(CART_KEY, JSON.stringify(cart));
+  window.cart = cart;
+  setCurrentInvoice(null);
+  updateCartCount();
+  renderCart();
+  show('panier');
+}
+
+function saveClient(){
+  const data = {
+    rnc: document.getElementById('c-rnc').value.trim(),
+    nom: document.getElementById('c-nom').value.trim(),
+    email: document.getElementById('c-email').value.trim(),
+    tel: document.getElementById('c-tel').value.trim(),
+    adresse: document.getElementById('c-adresse').value.trim()
+  };
+  localStorage.setItem(CLIENT_KEY, JSON.stringify(data));
+  return data;
+}
+function loadClient(){
+  const d = JSON.parse(localStorage.getItem(CLIENT_KEY)||'{}');
+  if(d.rnc) document.getElementById('c-rnc').value = d.rnc;
+  if(d.nom) document.getElementById('c-nom').value = d.nom;
+  if(d.email) document.getElementById('c-email').value = d.email;
+  if(d.tel) document.getElementById('c-tel').value = d.tel;
+  if(d.adresse) document.getElementById('c-adresse').value = d.adresse;
+  return d;
+}
+
+function renderCart(){
+  const products = loadProducts();
+  let cart = JSON.parse(localStorage.getItem(CART_KEY)) || [];
+  window.cart = cart;
+  let changed=false;
+  cart = cart.map(item=>{
+    if(item.itbis===undefined){
+      const prod = products.find(x=>x.id===item.id);
+      item.itbis = prod ? (prod.itbis ?? 18) : 18;
+      changed=true;
+    }
+    return item;
+  });
+  if(changed) localStorage.setItem(CART_KEY, JSON.stringify(cart));
+
+  const tbody = document.getElementById('cart-body');
+  const empty = document.getElementById('cart-empty');
+  tbody.innerHTML = '';
+  let subtotalSum = 0;
+  let itbisSum = 0;
+  const itbisByRate = {};
+
+  if(cart.length===0){
+    empty.style.display='block';
+  } else {
+    empty.style.display='none';
+    cart.forEach((item, idx)=>{
+      const sub = item.qty * item.price;
+      const rate = item.itbis || 0;
+      const itbisAmt = sub * rate / 100;
+      const totalLine = sub + itbisAmt;
+      subtotalSum += sub;
+      itbisSum += itbisAmt;
+      itbisByRate[rate] = (itbisByRate[rate]||0) + itbisAmt;
+
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${item.name}<span class="tier">${item.tier.toUpperCase()}</span><div style="font-size:.75rem;color:var(--muted)">ITBIS ${rate}%</div></td>
+        <td>${item.qty}</td>
+        <td>RD$ ${item.price.toLocaleString('es-DO')}</td>
+        <td>RD$ ${Math.round(sub).toLocaleString('es-DO')}</td>
+        <td>RD$ ${Math.round(itbisAmt).toLocaleString('es-DO')}</td>
+        <td><strong>RD$ ${Math.round(totalLine).toLocaleString('es-DO')}</strong></td>
+        <td><button onclick="removeItem(${idx})" title="Retirer" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:1.1rem">✕</button></td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+  const delivery = parseInt(document.getElementById('delivery-select').value)||0;
+  const total = subtotalSum + itbisSum + delivery;
+  document.getElementById('cart-subtotal').textContent = `RD$ ${Math.round(subtotalSum).toLocaleString('es-DO')}`;
+  const itbisDetail = document.getElementById('cart-itbis-detail');
+  if(itbisDetail){
+    const lines = Object.entries(itbisByRate).sort((a,b)=>b[0]-a[0]).map(([rate, amt])=>`ITBIS ${rate}%: RD$ ${Math.round(amt).toLocaleString('es-DO')}`);
+    itbisDetail.innerHTML = lines.join('<br>') || 'ITBIS: RD$ 0';
+  }
+  document.getElementById('cart-delivery-cost').textContent = `RD$ ${delivery.toLocaleString('es-DO')}`;
+  document.getElementById('cart-total').textContent = `RD$ ${Math.round(total).toLocaleString('es-DO')}`;
+  updateCartCount();
+  loadClient();
+  const waNum = localStorage.getItem(WHATSAPP_KEY) || '18096395784';
+  const dbg = document.getElementById('wa-debug');
+  if(dbg) dbg.textContent = (getLang()==='es'?'Número configurado: ':'Numéro configuré: ') + formatPhoneDisplay(waNum);
+  const panel = document.getElementById('wa-panel');
+  if(panel) panel.style.display = 'none';
+  const tier = window.currentTier;
+  const panierSel = document.getElementById('panier-tier-select');
+  if(panierSel) panierSel.value = tier;
+  resetInvoiceUI();
+}
+
+function removeItem(idx){
+  let cart = JSON.parse(localStorage.getItem(CART_KEY) || []);
+  cart.splice(idx,1);
+  localStorage.setItem(CART_KEY, JSON.stringify(cart));
+  window.cart = cart;
+  setCurrentInvoice(null);
+  renderCart();
+}
+
+function clearCart(){
+  if(confirm(getLang()==='es'?'¿Vaciar carrito?':'Vider le panier ?')){
+    localStorage.removeItem(CART_KEY);
+    window.cart = [];
+    setCurrentInvoice(null);
+    renderCart();
+  }
+}
+
+function updateCartCount(){
+  const cart = JSON.parse(localStorage.getItem(CART_KEY) || []);
+  const count = cart.reduce((s,i)=>s+i.qty,0);
+  document.getElementById('cart-count').textContent = count;
+}
+
+function buildOrderSnapshot(invoiceNumber){
+  const cart = JSON.parse(localStorage.getItem(CART_KEY) || '[]');
+  const client = JSON.parse(localStorage.getItem(CLIENT_KEY) || '{}');
+  const deliverySelect = document.getElementById('delivery-select');
+  const deliveryText = deliverySelect ? deliverySelect.options[deliverySelect.selectedIndex].text : '';
+  const deliveryCost = deliverySelect ? parseInt(deliverySelect.value)||0 : 0;
+  let subtotal = 0;
+  let itbis_total = 0;
+  const itbis_by_rate = {};
+  const cartDetailed = cart.map(item=>{
+    const sub = item.qty * item.price;
+    const rate = item.itbis || 0;
+    const itbisAmt = sub * rate / 100;
+    const totalLine = sub + itbisAmt;
+    subtotal += sub;
+    itbis_total += itbisAmt;
+    itbis_by_rate[rate] = (itbis_by_rate[rate]||0) + itbisAmt;
+    return {...item, subtotal: sub, itbis_rate: rate, itbis_amount: itbisAmt, total_line: totalLine };
+  });
+  const total = subtotal + itbis_total + deliveryCost;
+  return {
+    id: Date.now(),
+    date: new Date().toISOString(),
+    invoice: invoiceNumber,
+    client,
+    cart: cartDetailed,
+    subtotal,
+    itbis_total,
+    itbis_by_rate,
+    delivery: { text: deliveryText, cost: deliveryCost },
+    total,
+    tier: window.currentTier
+  };
+}
+function getNextInvoiceNumber(){
+  let counter = parseInt(localStorage.getItem(INVOICE_COUNTER_KEY) || '1');
+  const num = 'KV' + String(counter).padStart(7, '0');
+  localStorage.setItem(INVOICE_COUNTER_KEY, String(counter+1));
+  return num;
+}
+function loadCompta(){ return JSON.parse(localStorage.getItem(COMPTA_KEY) || '[]'); }
+function saveCompta(arr){ localStorage.setItem(COMPTA_KEY, JSON.stringify(arr)); }
+function addComptaEntry(entry){
+  const arr = loadCompta();
+  entry.id = Date.now() + Math.random();
+  arr.unshift(entry);
+  saveCompta(arr);
+  renderCompta();
+}
+function generateInvoiceOrder(){
+  const cart = JSON.parse(localStorage.getItem(CART_KEY) || '[]');
+  if(cart.length===0) return null;
+  const invoice = getNextInvoiceNumber();
+  const order = buildOrderSnapshot(invoice);
+  const orders = JSON.parse(localStorage.getItem(ORDERS_KEY)||'[]');
+  orders.unshift(order);
+  localStorage.setItem(ORDERS_KEY, JSON.stringify(orders));
+  addComptaEntry({
+    date: order.date,
+    type: 'Recette',
+    libelle: `Vente ${order.client.nom || 'Client'} - ${invoice}`,
+    montant: order.total,
+    facture: invoice
+  });
+  return order;
+}
+
+function createInvoice(){
+  const cart = JSON.parse(localStorage.getItem(CART_KEY) || '[]');
+  if(cart.length===0){ alert(getLang()==='es'?'Carrito vacío':'Panier vide'); return; }
+  const client = saveClient();
+  if(!client.nom || !client.tel || !client.adresse){
+    alert(getLang()==='es'?'Complete Nombre, Teléfono y Dirección':'Veuillez remplir Nom, Téléphone et Adresse');
+    document.getElementById('c-nom').focus();
+    return;
+  }
+  if(getCurrentInvoice()){
+    alert((getLang()==='es'?'Factura ya creada: ':'Facture déjà créée : ') + getCurrentInvoice());
+    return;
+  }
+  const order = generateInvoiceOrder();
+  if(!order){ alert('Erreur'); return; }
+  setCurrentInvoice(order.invoice);
+  renderOrders();
+  renderCompta();
+  renderCart();
+  alert((getLang()==='es'?'Factura ':'Facture ') + order.invoice + (getLang()==='es'?' creada con éxito':' créée avec succès'));
+}
+
+function printPDF(){
+  const inv = getCurrentInvoice();
+  if(!inv){ alert(getLang()==='es'?"Primero cree la factura":"Créez d'abord la facture"); return; }
+  const orders = JSON.parse(localStorage.getItem(ORDERS_KEY)||'[]');
+  const order = orders.find(o=>o.invoice===inv);
+  if(!order){ alert('Facture introuvable'); return; }
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  const company = loadCompany();
+
+  let y = 16;
+  if(company.logo){
+    try{
+      const imgType = company.logo.includes('image/png') ? 'PNG' : 'JPEG';
+      doc.addImage(company.logo, imgType, 14, 12, 30, 0);
+    }catch(e){}
+  }
+  doc.setFont('helvetica','bold'); doc.setFontSize(16);
+  doc.text(company.name || 'Centrale Marée Import & Local', company.logo ? 48 : 14, y+4);
+  doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(90);
+  y += 9;
+  const companyLine = [];
+  if(company.rnc) companyLine.push(`RNC: ${company.rnc}`);
+  if(company.address) companyLine.push(company.address);
+  if(company.phone) companyLine.push(`Tel: ${company.phone}`);
+  if(company.email) companyLine.push(company.email);
+  if(companyLine.length) doc.text(companyLine.join(' • '), company.logo ? 48 : 14, y);
+  y += 8;
+  doc.setTextColor(0);
+  doc.setFont('helvetica','bold'); doc.setFontSize(13);
+  y += 4;
+  doc.text(`${t('pdf_facture')} ${order.invoice}`, 14, y); y+=6;
+  doc.setFont('helvetica','normal'); doc.setFontSize(10); doc.setTextColor(100);
+  const dateStr = new Date(order.date).toLocaleDateString(getLang()==='es'?'es-ES':'fr-FR');
+  doc.text(`${t('pdf_date')} ${dateStr} - Santo Domingo, RD`, 14, y); y+=6;
+  const tierLabelsPdf = {gros: t('tier_gros_pdf'), demi: t('tier_demi_pdf'), detail: t('tier_detail_pdf')};
+  const tierLabelPDF = tierLabelsPdf[order.tier] || t('tier_detail_pdf');
+  doc.text(`${t('pdf_tarif')} ${tierLabelPDF}`, 14, y); y+=8;
+  doc.setTextColor(0);
+  
+  doc.setFont('helvetica','bold'); doc.setFontSize(14);
+  doc.text(`${t('pdf_client')} ${order.client.nom}`,14,y); y+=8;
+  doc.setFont('helvetica','normal'); doc.setFontSize(10);
+  if(order.client.rnc) { doc.text(`RNC / Cédula: ${order.client.rnc}`,14,y); y+=5; }
+  doc.text(`${t('label_tel').replace(' *','')}: ${order.client.tel}${order.client.email? '  •  Email: '+order.client.email : ''}`,14,y); y+=5;
+  doc.text(`${t('label_adresse').replace(' *','')}: ${order.client.adresse}`,14,y); y+=10;
+
+  doc.setFont('helvetica','bold');
+  doc.text(t('pdf_produit'),14,y); doc.text(t('pdf_qty'),95,y); doc.text(t('pdf_pu'),115,y); doc.text(t('pdf_sous_total'),140,y); doc.text(t('pdf_total_ttc'),172,y); y+=4;
+  doc.line(14,y,196,y); y+=6;
+  doc.setFont('helvetica','normal');
+  order.cart.forEach(it=>{
+    const sub = it.subtotal || (it.qty*it.price);
+    const totalLine = it.total_line || sub * (1 + (it.itbis_rate||0)/100);
+    if(y>270){ doc.addPage(); y=20; }
+    const name = it.name;
+    doc.text(name.length>28 ? name.substring(0,27)+'…' : name,14,y);
+    doc.text(`${it.qty} kg`,95,y);
+    doc.text(`RD$ ${it.price}`,115,y);
+    doc.text(`RD$ ${Math.round(sub)}`,140,y);
+    doc.text(`RD$ ${Math.round(totalLine)}`,172,y);
+    y+=7;
+  });
+  y+=4; doc.line(14,y,196,y); y+=8;
+  doc.text(`${t('pdf_sous_total_label')}`,140,y); doc.text(`RD$ ${Math.round(order.subtotal).toLocaleString('es-DO')}`,172,y); y+=7;
+  const rates = order.itbis_by_rate || {};
+  Object.entries(rates).sort((a,b)=>b[0]-a[0]).forEach(([rate, amt])=>{
+    if(amt>0){
+      doc.text(`${t('pdf_itbis')} ${rate}%:`,140,y); doc.text(`RD$ ${Math.round(amt).toLocaleString('es-DO')}`,172,y); y+=7;
+    }
+  });
+  if(!Object.keys(rates).length && order.itbis_total){
+    doc.text(`${t('pdf_itbis')}:`,140,y); doc.text(`RD$ ${Math.round(order.itbis_total).toLocaleString('es-DO')}`,172,y); y+=7;
+  }
+  doc.text(`${t('pdf_livraison')}`,140,y); doc.text(`RD$ ${order.delivery.cost}`,172,y); y+=2;
+  doc.setFontSize(9); doc.setTextColor(100); doc.text(order.delivery.text.split(' - ')[0], 14, y); doc.setTextColor(0); doc.setFontSize(10); y+=7;
+  doc.setFont('helvetica','bold'); doc.setFontSize(13);
+  doc.text(`${t('pdf_total')}`,140,y); doc.text(`RD$ ${Math.round(order.total).toLocaleString('es-DO')}`,172,y);
+  y+=14; doc.setFont('helvetica','normal'); doc.setFontSize(10); doc.setTextColor(80);
+  const thanks = company.thanks || t('pdf_thanks_default');
+  doc.text(thanks,14,y);
+  doc.save(`FACTURE-${order.invoice}.pdf`);
+}
+
+function sendWhatsApp(){
+  const inv = getCurrentInvoice();
+  if(!inv){ alert(getLang()==='es'?"Primero cree la factura":"Créez d'abord la facture"); return; }
+  const orders = JSON.parse(localStorage.getItem(ORDERS_KEY)||'[]');
+  const order = orders.find(o=>o.invoice===inv);
+  if(!order){ alert('Facture introuvable'); return; }
+  const waRaw = localStorage.getItem(WHATSAPP_KEY) || '18096395784';
+  const wa = (waRaw.replace(/\D/g,'') || '18096395784');
+  const company = loadCompany();
+  const lines = order.cart.map(it=>{
+    const sub = Math.round(it.subtotal || it.qty*it.price);
+    const rate = it.itbis_rate || 0;
+    return `• ${it.qty}kg x ${it.name} @ RD$${it.price} = RD$${sub} (+${rate}% ITBIS)`;
+  }).join('\n');
+  const itbisLines = Object.entries(order.itbis_by_rate||{}).sort((a,b)=>b[0]-a[0]).map(([r,a])=>`${t('pdf_itbis')} ${r}%: RD$${Math.round(a).toLocaleString('es-DO')}`).join('\n');
+  const tierLabelsPdf = {gros: t('tier_gros_pdf'), demi: t('tier_demi_pdf'), detail: t('tier_detail_pdf')};
+  const tierLabelWA = tierLabelsPdf[order.tier] || t('tier_detail_pdf');
+  const message = `${t('pdf_facture')} ${order.invoice}\n${company.name}\n${company.phone ? 'Tel: '+company.phone : ''}\n${t('pdf_date')} ${new Date(order.date).toLocaleString(getLang()==='es'?'es-ES':'fr-FR')}\n${t('pdf_tarif')} ${tierLabelWA}\n${t('pdf_client')} ${order.client.nom}\nTEL: ${order.client.tel}\nRNC: ${order.client.rnc || '-'}\n${t('label_adresse').replace(' *','')}: ${order.client.adresse}\n---\n${lines}\n---\n${t('pdf_sous_total_label')} RD$${Math.round(order.subtotal).toLocaleString('es-DO')}\n${itbisLines}\n${t('pdf_livraison')} ${order.delivery.text}\n${t('pdf_total')} RD$${Math.round(order.total).toLocaleString('es-DO')}`;
+  const url = 'https://wa.me/' + wa + '?text=' + encodeURIComponent(message);
+  const link = document.getElementById('wa-link');
+  const textarea = document.getElementById('wa-text');
+  const panel = document.getElementById('wa-panel');
+  if(link) link.href = url;
+  if(textarea) textarea.value = message;
+  if(panel){
+    panel.style.display = 'block';
+    setTimeout(()=> panel.scrollIntoView({behavior:'smooth', block:'nearest'}), 50);
+  }
+  const dbg = document.getElementById('wa-debug');
+  if(dbg) dbg.textContent = (getLang()==='es'?'Número WhatsApp: ':'Numéro WhatsApp: ') + formatPhoneDisplay(wa) + ' • ' + t('pdf_facture') + ' ' + order.invoice + ' ' + (getLang()==='es'?'lista':'prête');
+}
+
+function copyWaText(){
+  const t = document.getElementById('wa-text');
+  if(!t) return;
+  t.select();
+  t.setSelectionRange(0, 99999);
+  try{
+    document.execCommand('copy');
+    alert(getLang()==='es'?'Mensaje copiado':'Message copié');
+  }catch(e){
+    navigator.clipboard.writeText(t.value).then(()=>alert(getLang()==='es'?'Mensaje copiado':'Message copié'));
+  }
+}
+
+function saveWhatsApp(){
+  const v = document.getElementById('wa-number').value.replace(/\D/g,'');
+  if(!v){ alert(getLang()==='es'?'Ingrese número válido':'Entrez un numéro valide'); return; }
+  localStorage.setItem(WHATSAPP_KEY, v);
+  const dbg = document.getElementById('wa-debug');
+  if(dbg) dbg.textContent = (getLang()==='es'?'Número configurado: ':'Numéro configuré: ') + formatPhoneDisplay(v);
+  alert(getLang()==='es'?'Número WhatsApp guardado':'Numéro WhatsApp enregistré');
+}
+
+function renderAdmin(){
+  const products = loadProducts();
+  const tbody = document.getElementById('admin-body');
+  tbody.innerHTML = '';
+  products.forEach((p, idx)=>{
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><div style="width:40px;height:40px;border-radius:8px;overflow:hidden;background:#f1f5f9;border:1px solid var(--border);display:flex;align-items:center;justify-content:center">${p.image ? `<img src="${p.image}" style="width:100%;height:100%;object-fit:cover">` : '🐟'}</div></td>
+      <td><strong>${p.name}</strong></td>
+      <td><span style="background:#eef2ff;color:#3730a3;padding:2px 8px;border-radius:999px;font-size:.75rem;font-weight:600">${p.category||'Import'}</span></td>
+      <td>RD$ ${p.gros}</td>
+      <td>RD$ ${p.demi}</td>
+      <td>RD$ ${p.detail}</td>
+      <td>${p.itbis||18}%</td>
+      <td style="display:flex;gap:6px">
+        <button class="secondary" onclick="editProduct(${p.id})" style="padding:6px 10px">${getLang()==='es'?'Editar':'Modifier'}</button>
+        <button class="danger" onclick="deleteProduct(${idx})">${getLang()==='es'?'Eliminar':'Supprimer'}</button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+  document.getElementById('wa-number').value = localStorage.getItem(WHATSAPP_KEY)||'18096395784';
+  const home = loadHomeData();
+  document.getElementById('h-title').value = home.title;
+  document.getElementById('h-sub').value = home.subtitle;
+  document.getElementById('h-f1t').value = home.f1t;
+  document.getElementById('h-f1d').value = home.f1d;
+  document.getElementById('h-f2t').value = home.f2t;
+  document.getElementById('h-f2d').value = home.f2d;
+  document.getElementById('h-f3t').value = home.f3t;
+  document.getElementById('h-f3d').value = home.f3d;
+  const comp = loadCompany();
+  const setVal = (id, val)=>{ const el=document.getElementById(id); if(el) el.value = val||''; };
+  setVal('comp-name', comp.name);
+  setVal('comp-rnc', comp.rnc);
+  setVal('comp-address', comp.address);
+  setVal('comp-phone', comp.phone);
+  setVal('comp-email', comp.email);
+  setVal('comp-logo-data', comp.logo);
+  setVal('comp-thanks', comp.thanks);
+  const compPreview = document.getElementById('comp-logo-preview');
+  if(compPreview){
+    if(comp.logo){ compPreview.src = comp.logo; compPreview.style.display='block'; }
+    else { compPreview.style.display='none'; }
+  }
+  renderCategories();
+  renderOrders();
+  renderCompta();
+  applyLang();
+}
+
+window.editProduct = function(id){
+  const products = loadProducts();
+  const p = products.find(x=>x.id===id);
+  if(!p) return;
+  document.getElementById('p-name').value = p.name;
+  document.getElementById('p-gros').value = p.gros;
+  document.getElementById('p-demi').value = p.demi;
+  document.getElementById('p-detail').value = p.detail;
+  document.getElementById('p-cat').value = p.category || 'Import';
+  document.getElementById('p-itbis').value = p.itbis ?? 18;
+  document.getElementById('p-image-data').value = p.image || '';
+  const preview = document.getElementById('p-preview');
+  const previewText = document.getElementById('p-preview-text');
+  if(p.image){ preview.src = p.image; preview.style.display='block'; previewText.style.display='none'; } else { preview.style.display='none'; previewText.style.display='inline'; previewText.textContent=t('no_image'); }
+  editingProductId = id;
+  document.getElementById('p-submit').textContent = getLang()==='es'?'Actualizar':'Mettre à jour';
+  document.getElementById('p-cancel').style.display='inline-block';
+  window.scrollTo({top: document.getElementById('product-form').offsetTop - 80, behavior:'smooth'});
+}
+
+function cancelEditProduct(){
+  editingProductId = null;
+  document.getElementById('product-form').reset();
+  document.getElementById('p-image-data').value='';
+  document.getElementById('p-preview').style.display='none';
+  document.getElementById('p-preview-text').style.display='inline';
+  document.getElementById('p-preview-text').textContent=t('no_image');
+  document.getElementById('p-submit').textContent=t('save');
+  document.getElementById('p-cancel').style.display='none';
+}
+
+window.deleteProduct = function(index){
+  if(!confirm(getLang()==='es'?'¿Eliminar este producto?':'Supprimer ce produit ?')) return;
+  const products = loadProducts();
+  products.splice(index,1);
+  localStorage.setItem(PRODUCTS_KEY, JSON.stringify(products));
+  renderAdmin();
+  renderBoutique();
+}
+
+function renderOrders(filter=''){
+  const tbody = document.getElementById('orders-body');
+  if(!tbody) return;
+  const orders = JSON.parse(localStorage.getItem(ORDERS_KEY)||'[]');
+  const q = filter.toLowerCase().trim();
+  tbody.innerHTML = '';
+  const filtered = orders.filter(o=>{
+    if(!q) return true;
+    const nom = (o.client.nom||'').toLowerCase();
+    const tel = (o.client.tel||'').toLowerCase();
+    const inv = (o.invoice||'').toLowerCase();
+    return nom.includes(q) || tel.includes(q) || inv.includes(q);
+  });
+  if(filtered.length===0){
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:20px">${getLang()==='es'?'Ningún pedido':'Aucune commande'}</td></tr>`;
+    return;
+  }
+  filtered.forEach(o=>{
+    const d = new Date(o.date);
+    const dateStr = d.toLocaleString(getLang()==='es'?'es-ES':'fr-FR', {dateStyle:'short', timeStyle:'short'});
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${dateStr}</td>
+      <td><strong style="color:var(--blue)">${o.invoice||'-'}</strong></td>
+      <td><strong>${o.client.nom||'-'}</strong></td>
+      <td>${o.client.tel||'-'}</td>
+      <td><strong>RD$ ${Math.round(o.total).toLocaleString('es-DO')}</strong></td>
+      <td style="display:flex;gap:6px;flex-wrap:wrap">
+        <button class="secondary" onclick="viewOrder(${o.id})" style="padding:6px 10px">${getLang()==='es'?'Ver':'Voir'}</button>
+        <button class="primary" onclick="reuseOrder(${o.id})" style="padding:6px 10px">${getLang()==='es'?'Reutilizar':'Réutiliser'}</button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function viewOrder(id){
+  const orders = JSON.parse(localStorage.getItem(ORDERS_KEY)||'[]');
+  const o = orders.find(x=>x.id==id);
+  if(!o) return;
+  const details = document.getElementById('order-details');
+  const d = new Date(o.date);
+  const items = o.cart.map(i=>{
+    const sub = i.subtotal || (i.qty*i.price);
+    const rate = i.itbis_rate || i.itbis || 0;
+    const totalLine = i.total_line || sub*(1+rate/100);
+    return `<li>${i.qty}kg × ${i.name} (${(i.tier||'').toUpperCase()}) @ RD$${i.price} = RD$${Math.round(sub).toLocaleString('es-DO')} + ITBIS ${rate}% → <strong>RD$ ${Math.round(totalLine).toLocaleString('es-DO')}</strong></li>`;
+  }).join('');
+  const itbisHtml = o.itbis_by_rate ? Object.entries(o.itbis_by_rate).map(([r,a])=>`ITBIS ${r}%: RD$ ${Math.round(a).toLocaleString('es-DO')}`).join('<br>') : (o.itbis_total ? `ITBIS: RD$ ${Math.round(o.itbis_total).toLocaleString('es-DO')}` : '');
+  const tierMapView = {gros:t('tier_gros_pdf'), demi:t('tier_demi_pdf'), detail:t('tier_detail_pdf')};
+  details.style.display='block';
+  details.innerHTML = `
+    <div style="background:#f8fafc;border:1px solid var(--border);padding:16px;border-radius:12px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <h4 style="margin:0;color:var(--navy)">${t('pdf_facture')} ${o.invoice||'—'} - ${d.toLocaleString(getLang()==='es'?'es-ES':'fr-FR')}</h4>
+        <button onclick="document.getElementById('order-details').style.display='none'" style="background:none;border:none;font-size:1.2rem;cursor:pointer;color:var(--muted)">✕</button>
+      </div>
+      <div style="font-size:.95rem;line-height:1.6">
+        <div><strong>${t('pdf_client')}</strong> ${o.client.nom} ${o.client.rnc? '• RNC: '+o.client.rnc:''}</div>
+        <div><strong>${t('label_tel').replace(' *','')}:</strong> ${o.client.tel} ${o.client.email? '• '+o.client.email:''}</div>
+        <div><strong>${t('label_adresse').replace(' *','')}:</strong> ${o.client.adresse}</div>
+        <div><strong>${t('pdf_tarif')}</strong> ${tierMapView[o.tier]||''}</div>
+        <div style="margin-top:8px"><strong>${getLang()==='es'?'Productos:':'Produits:'}</strong><ul style="margin:6px 0 0 18px">${items}</ul></div>
+        <div style="margin-top:8px">${t('pdf_sous_total_label')} RD$ ${Math.round(o.subtotal||0).toLocaleString('es-DO')}<br>${itbisHtml ? itbisHtml + '<br>' : ''}${t('pdf_livraison')} ${o.delivery.text} (RD$ ${o.delivery.cost})<br><strong>${t('pdf_total')} RD$ ${Math.round(o.total).toLocaleString('es-DO')}</strong></div>
+      </div>
+    </div>
+  `;
+  details.scrollIntoView({behavior:'smooth', block:'nearest'});
+}
+
+function reuseOrder(id){
+  const orders = JSON.parse(localStorage.getItem(ORDERS_KEY)||'[]');
+  const o = orders.find(x=>x.id==id);
+  if(!o) return;
+  localStorage.setItem(CLIENT_KEY, JSON.stringify(o.client));
+  show('panier');
+  loadClient();
+  alert(getLang()==='es'?'Datos del cliente cargados.':'Coordonnées client chargées depuis la commande.');
+}
+
+function clearOrders(){
+  if(confirm(getLang()==='es'?'¿Borrar todo el historial?':'Effacer tout l\'historique des commandes ?')){
+    localStorage.removeItem(ORDERS_KEY);
+    renderOrders();
+    document.getElementById('order-details').style.display='none';
+  }
+}
+
+function exportOrders(){
+  const data = localStorage.getItem(ORDERS_KEY)||'[]';
+  const blob = new Blob([data], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `commandes-centrale-maree-${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function renderCompta(){
+  const arr = loadCompta();
+  const tbody = document.getElementById('compta-body');
+  if(!tbody) return;
+  tbody.innerHTML='';
+  let totalRecettes=0, totalDepenses=0;
+  arr.forEach((e, idx)=>{
+    if(e.type==='Recette') totalRecettes+=e.montant; else totalDepenses+=e.montant;
+    const tr=document.createElement('tr');
+    const d=new Date(e.date);
+    tr.innerHTML = `<td>${d.toLocaleDateString(getLang()==='es'?'es-ES':'fr-FR')}</td><td>${e.type}</td><td>${e.libelle}</td><td><strong>RD$ ${e.montant.toLocaleString('es-DO')}</strong></td><td>${e.facture||'-'}</td><td><button onclick="deleteCompta(${idx})" style="background:none;border:none;color:var(--red);cursor:pointer" title="Supprimer">✕</button></td>`;
+    tbody.appendChild(tr);
+  });
+  document.getElementById('compta-recettes').textContent = `RD$ ${totalRecettes.toLocaleString('es-DO')}`;
+  document.getElementById('compta-depenses').textContent = `RD$ ${totalDepenses.toLocaleString('es-DO')}`;
+  document.getElementById('compta-solde').textContent = `RD$ ${(totalRecettes-totalDepenses).toLocaleString('es-DO')}`;
+}
+function deleteCompta(idx){
+  if(!confirm(getLang()==='es'?'¿Eliminar esta entrada?':'Supprimer cette écriture comptable ?')) return;
+  let arr = loadCompta();
+  arr.splice(idx,1);
+  saveCompta(arr);
+  renderCompta();
+}
+function showComptaForm(type){
+  currentComptaType = type;
+  const wrap = document.getElementById('compta-form-wrap');
+  if(!wrap) return;
+  wrap.style.display='block';
+  document.getElementById('cf-libelle').value = '';
+  document.getElementById('cf-montant').value = '';
+  document.getElementById('cf-date').valueAsDate = new Date();
+  const btn = document.getElementById('cf-submit');
+  btn.textContent = type === 'Recette' ? (getLang()==='es'?'Añadir Ingreso':'Ajouter Recette') : (getLang()==='es'?'Añadir Gasto':'Ajouter Dépense');
+  btn.style.background = type==='Recette' ? '#16a34a' : '#dc2626';
+  btn.style.boxShadow = type==='Recette' ? '0 4px 10px rgba(22,163,74,.25)' : '0 4px 10px rgba(220,38,.25)';
+}
+function hideComptaForm(){
+  const wrap = document.getElementById('compta-form-wrap');
+  if(wrap) wrap.style.display='none';
+}
+function ajouterRecette(){ showComptaForm('Recette'); }
+function ajouterDepense(){ showComptaForm('Dépense'); }
+
+function genererResumeCompta(){
+  const arr = loadCompta();
+  const now = new Date();
+  const start = new Date(now.getFullYear(), now.getMonth(), 1);
+  const end = new Date(now.getFullYear(), now.getMonth()+1, 0, 23,59,59);
+  const mois = arr.filter(e=>{ const d=new Date(e.date); return d>=start && d<=end; });
+  let recettes=0, depenses=0;
+  let lines = [];
+  mois.forEach(e=>{
+    const d = new Date(e.date).toLocaleDateString(getLang()==='es'?'es-ES':'fr-FR');
+    lines.push(`${d} | ${e.type.padEnd(7)} | ${e.libelle} | RD$ ${e.montant.toLocaleString('es-DO')} ${e.facture? '| '+e.facture:''}`);
+    if(e.type==='Recette') recettes+=e.montant; else depenses+=e.montant;
+  });
+  const solde = recettes-depenses;
+  const periode = start.toLocaleDateString(getLang()==='es'?'es-ES':'fr-FR', {month:'long', year:'numeric'});
+  const resume = `CENTRALE MAREE - RESUME COMPTABLE\nPériode: ${periode}\nGénéré le: ${now.toLocaleString(getLang()==='es'?'es-ES':'fr-FR')}\n\nRECETTES: RD$ ${recettes.toLocaleString('es-DO')}\nDEPENSES: RD$ ${depenses.toLocaleString('es-DO')}\nSOLDE: RD$ ${solde.toLocaleString('es-DO')}\n\nDETAIL:\n${lines.join('\n')}`;
+  const div = document.getElementById('resume-compta');
+  div.style.display='block';
+  div.innerHTML = `<h4 style="margin:0 0 8px;color:var(--navy)">${getLang()==='es'?'Resumen':'Résumé'} ${periode}</h4><pre style="white-space:pre-wrap;font-family:ui-monospace;font-size:.85rem;background:white;padding:12px;border-radius:8px;border:1px solid var(--border);max-height:300px;overflow:auto">${resume}</pre><div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px"><button class="secondary" onclick="copierResume()">${getLang()==='es'?'Copiar':'Copier'}</button><button class="secondary" onclick="telechargerResume()">${getLang()==='es'?'Descargar .txt':'Télécharger .txt'}</button><button class="primary" onclick="pdfResume()">PDF</button></div>`;
+  div.dataset.text = resume;
+}
+function copierResume(){
+  const text = document.getElementById('resume-compta').dataset.text;
+  navigator.clipboard.writeText(text).then(()=>alert(getLang()==='es'?'Resumen copiado':'Résumé copié'));
+}
+function telechargerResume(){
+  const text = document.getElementById('resume-compta').dataset.text;
+  const blob = new Blob([text], {type:'text/plain'});
+  const url = URL.createObjectURL(blob);
+  const a=document.createElement('a'); a.href=url; a.download=`resume-comptable-${new Date().toISOString().slice(0,7)}.txt`; a.click(); URL.revokeObjectURL(url);
+}
+function pdfResume(){
+  const text = document.getElementById('resume-compta').dataset.text;
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF(); doc.setFont('courier','normal'); doc.setFontSize(10);
+  const lines = doc.splitTextToSize(text, 180);
+  doc.text(lines, 10, 15);
+  doc.save(`resume-comptable-${new Date().toISOString().slice(0,7)}.pdf`);
+}
+
+document.getElementById('product-form').addEventListener('submit', e=>{
+  e.preventDefault();
+  const name = document.getElementById('p-name').value.trim();
+  const gros = parseInt(document.getElementById('p-gros').value);
+  const demi = parseInt(document.getElementById('p-demi').value);
+  const detail = parseInt(document.getElementById('p-detail').value);
+  const category = document.getElementById('p-cat').value;
+  const itbis = parseInt(document.getElementById('p-itbis').value)||18;
+  const image = document.getElementById('p-image-data').value || '';
+  if(!name) return;
+  const products = loadProducts();
+  if(editingProductId){
+    const idx = products.findIndex(p=>p.id===editingProductId);
+    if(idx>=0){ products[idx] = {...products[idx], name, gros, demi, detail, category, itbis, image}; }
+  } else {
+    products.push({id: Date.now(), name, gros, demi, detail, category, itbis, image});
+  }
+  saveProducts(products);
+  cancelEditProduct();
+  renderAdmin();
+  renderBoutique();
+});
+
+document.getElementById('home-form').addEventListener('submit', e=>{
+  e.preventDefault();
+  const data = {
+    title: document.getElementById('h-title').value.trim(),
+    subtitle: document.getElementById('h-sub').value.trim(),
+    f1t: document.getElementById('h-f1t').value.trim(),
+    f1d: document.getElementById('h-f1d').value.trim(),
+    f2t: document.getElementById('h-f2t').value.trim(),
+    f2d: document.getElementById('h-f2d').value.trim(),
+    f3t: document.getElementById('h-f3t').value.trim(),
+    f3d: document.getElementById('h-f3d').value.trim(),
+  };
+  localStorage.setItem(HOME_KEY, JSON.stringify(data));
+  renderHome();
+  alert(getLang()==='es'?"Página de inicio actualizada":"Page d'accueil mise à jour");
+});
+
+document.addEventListener('DOMContentLoaded', ()=>{
+  // Force reload of persistent data
+  window.currentTier = localStorage.getItem(TIER_KEY) || 'detail';
+  loadProducts();
+  loadCategories();
+  updateCartCount();
+  renderCompanyHeader();
+  if(!localStorage.getItem(WHATSAPP_KEY)){
+    localStorage.setItem(WHATSAPP_KEY, '18096395784');
+  }
+  if(!localStorage.getItem(INVOICE_COUNTER_KEY)){
+    localStorage.setItem(INVOICE_COUNTER_KEY, '1');
+  }
+  const tierSelect = document.getElementById('tierSelect');
+  if(tierSelect){
+    tierSelect.value = window.currentTier;
+    const badgeInit = document.getElementById('currentTierBadge');
+    if(badgeInit){
+      badgeInit.textContent = tierSelect.options[tierSelect.selectedIndex].text.toUpperCase();
+    }
+    tierSelect.addEventListener('change', function(e){
+      const newTier = e.target.value;
+      const oldTier = window.currentTier;
+      const cart = JSON.parse(localStorage.getItem(CART_KEY) || '[]');
+      if(cart.length>0){
+        if(!confirm(getLang()==='es'?'Cambiar tarifa vaciará su carrito. ¿Continuar?':'Changer de tarif va vider votre panier actuel. Continuer ?')){
+          e.target.value = oldTier;
+          return;
+        }
+        localStorage.setItem(CART_KEY, '[]');
+        window.cart = [];
+        setCurrentInvoice(null);
+        updateCartCount();
+      }
+      window.currentTier = newTier;
+      localStorage.setItem(TIER_KEY, window.currentTier);
+      document.getElementById('currentTierBadge').textContent = e.target.options[e.target.selectedIndex].text.toUpperCase();
+      const panierSel = document.getElementById('panier-tier-select');
+      if(panierSel) panierSel.value = newTier;
+      renderBoutique(true);
+      renderCart();
+    });
+  }
+  renderBoutique();
+  renderHome();
+  ['c-nom','c-rnc','c-email','c-tel','c-adresse'].forEach(id=>{ const el=document.getElementById(id); if(el) el.addEventListener('input', saveClient); });
+  const pImage = document.getElementById('p-image');
+  if(pImage){
+    pImage.addEventListener('change', e=>{
+      const file = e.target.files[0];
+      if(!file) return;
+      const reader = new FileReader();
+      reader.onload = ev=>{
+        const data = ev.target.result;
+        document.getElementById('p-image-data').value = data;
+        const preview = document.getElementById('p-preview');
+        preview.src = data;
+        preview.style.display='block';
+        document.getElementById('p-preview-text').style.display='none';
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+  const cf = document.getElementById('compta-form');
+  if(cf){
+    cf.addEventListener('submit', function(e){
+      e.preventDefault();
+      const libelle = document.getElementById('cf-libelle').value.trim();
+      const montant = parseFloat(document.getElementById('cf-montant').value);
+      const dateVal = document.getElementById('cf-date').value;
+      if(!libelle || isNaN(montant) || montant<=0){ alert(getLang()==='es'?'Complete descripción y monto válido':'Veuillez remplir libellé et montant valide'); return; }
+      const date = dateVal ? new Date(dateVal+'T12:00:00').toISOString() : new Date().toISOString();
+      addComptaEntry({date, type: currentComptaType || 'Recette', libelle, montant, facture:''});
+      hideComptaForm();
+    });
+  }
+  const companyForm = document.getElementById('company-form');
+  if(companyForm){
+    companyForm.addEventListener('submit', e=>{
+      e.preventDefault();
+      const c = {
+        name: document.getElementById('comp-name').value.trim(),
+        rnc: document.getElementById('comp-rnc').value.trim(),
+        address: document.getElementById('comp-address').value.trim(),
+        phone: document.getElementById('comp-phone').value.trim(),
+        email: document.getElementById('comp-email').value.trim(),
+        logo: document.getElementById('comp-logo-data').value || '',
+        thanks: document.getElementById('comp-thanks').value.trim() || t('pdf_thanks_default')
+      };
+      saveCompany(c);
+      renderCompanyHeader();
+      alert(getLang()==='es'?'Parámetros de empresa guardados':'Paramètres société enregistrés');
+    });
+  }
+  const compLogo = document.getElementById('comp-logo');
+  if(compLogo){
+    compLogo.addEventListener('change', e=>{
+      const file = e.target.files[0];
+      if(!file) return;
+      const reader = new FileReader();
+      reader.onload = ev=>{
+        const data = ev.target.result;
+        document.getElementById('comp-logo-data').value = data;
+        const preview = document.getElementById('comp-logo-preview');
+        if(preview){ preview.src = data; preview.style.display='block'; }
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+  show('accueil');
+  applyLang();
+});
+</script>
+<script>(function(){document.addEventListener("click",function(e){var a=e.target.closest("[data-product-id]");if(!a)return;e.preventDefault();var pid=a.getAttribute("data-product-id");if(pid)parent.postMessage({type:"ecto-artifact-link-click",productId:pid},"*")})})();</script>
+</body>
+</html>
